@@ -1,4 +1,5 @@
 import '../../../static/css/tailwind.css';
+import { Icon } from '../../shared/components/Icon.jsx';
 
 export function HomePage() {
 	return (
@@ -11,6 +12,14 @@ export function HomePage() {
 					<div className="grid gap-8 px-6 py-8 md:grid-cols-[minmax(0,1fr)_320px] md:px-10 md:py-10">
 						<div className="max-w-3xl">
 							<span className="caption-caption-10-semibold inline-flex rounded-full bg-cinemata-coral-reef-300 px-3 py-1 uppercase tracking-[0.18em] text-cinemata-pacific-deep-900">
+								<span className="mr-2 inline-flex items-center" aria-hidden="true">
+									<Icon
+										name="exampleIcon"
+										decorative={true}
+										size="xs"
+										className="text-cinemata-pacific-deep-900"
+									/>
+								</span>
 								Revamp preview
 							</span>
 							<h1 className="title-title-72-medium mt-5 max-w-2xl text-cinemata-white max-md:text-[48px] max-md:leading-[58px]">
