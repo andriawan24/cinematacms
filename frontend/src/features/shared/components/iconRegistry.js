@@ -40,7 +40,5 @@ export const iconRegistry = buildRegistry();
 export const iconNames = Object.freeze(Object.keys(iconRegistry).sort());
 
 export function getIconComponent(name) {
-	return Object.prototype.hasOwnProperty.call(iconRegistry, name)
-		? iconRegistry[name]
-		: null;
+	return Object.prototype.hasOwnProperty.call(iconRegistry, name) ? iconRegistry[name] : null;
 }
