@@ -5,7 +5,11 @@ const iconModules = import.meta.glob('../icons/*.svg', {
 });
 
 function toIconName(path) {
-	const fileName = path.split('/').pop()?.replace(/\.svg$/, '') || '';
+	const fileName =
+		path
+			.split('/')
+			.pop()
+			?.replace(/\.svg$/, '') || '';
 
 	return fileName.replace(/-([a-z0-9])/g, (_, char) => char.toUpperCase());
 }
