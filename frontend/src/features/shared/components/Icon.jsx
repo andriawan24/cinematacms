@@ -24,9 +24,10 @@ function warnMissingIcon(name) {
 	if (!import.meta.env.DEV || warnedIcons.has(name)) {
 		return;
 	}
-
 	warnedIcons.add(name);
-	console.warn(`[Icon] Unknown icon "${name}". Add it to src/features/shared/components/iconRegistry.js.`);
+	console.warn(
+		`[Icon] Unknown icon "${name}". Add the SVG to src/features/shared/icons/(kebab-case filename) — it will be auto-registered.`
+	);
 }
 
 export function Icon(props) {
