@@ -10,7 +10,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"lint:modern": "eslint src/features/",
-		"lint:legacy": "eslint src/static/js/pages/ src/static/js/components/"
+		"lint:legacy": "eslint src/static/js/pages/ src/static/js/components/",
 		"test": "vitest",
 		"test:run": "vitest run"
 	},
