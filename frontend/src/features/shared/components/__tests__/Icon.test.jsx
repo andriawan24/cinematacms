@@ -35,12 +35,12 @@ describe('Icon', () => {
 
 	it('warns once and renders nothing for unknown icons', () => {
 		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		const { container, rerender } = render(<Icon name="missingIcon" />);
+		const uniqueName = `missingIcon_${Date.now()}_${Math.random()}`;
+		const { container, rerender } = render(<Icon name={uniqueName} />);
 
 		expect(container.querySelector('svg')).toBeNull();
 		expect(warnSpy).toHaveBeenCalledTimes(1);
-
-		rerender(<Icon name="missingIcon" />);
+		rerender(<Icon name={uniqueName} />);
 		expect(warnSpy).toHaveBeenCalledTimes(1);
 
 		warnSpy.mockRestore();
