@@ -15,7 +15,7 @@ function toIconName(path) {
 }
 
 function buildRegistry() {
-	const registry = {};
+	const registry = Object.create(null);
 
 	for (const [path, component] of Object.entries(iconModules)) {
 		const iconName = toIconName(path);
@@ -24,7 +24,7 @@ function buildRegistry() {
 			continue;
 		}
 
-		if (registry[iconName]) {
+		if (Object.prototype.hasOwnProperty.call(registry, iconName)) {
 			throw new Error(
 				`Duplicate shared icon name "${iconName}" detected while loading ${path}. Rename one of the SVG files in src/features/shared/icons/.`
 			);
@@ -40,5 +40,7 @@ export const iconRegistry = buildRegistry();
 export const iconNames = Object.freeze(Object.keys(iconRegistry).sort());
 
 export function getIconComponent(name) {
-	return iconRegistry[name] || null;
+	return Object.prototype.hasOwnProperty.call(iconRegistry, name)
+		? iconRegistry[name]
+		: null;
 }

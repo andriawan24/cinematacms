@@ -2,11 +2,15 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Icon } from '../Icon.jsx';
-import { iconNames } from '../iconRegistry.js';
+import { getIconComponent, iconNames } from '../iconRegistry.js';
 
 describe('iconRegistry', () => {
 	it('auto-registers shared icons from filenames', () => {
 		expect(iconNames).toContain('exampleIcon');
+	});
+
+	it('does not resolve inherited Object.prototype keys as icons', () => {
+		expect(getIconComponent('toString')).toBeNull();
 	});
 });
 
