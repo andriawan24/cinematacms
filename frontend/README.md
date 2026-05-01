@@ -47,7 +47,7 @@ Run shared component tests:
 
     npm run test:components
 
-Shared reusable primitives live in `src/components/`. Keep stories colocated with components as `*.stories.jsx`.
+Shared reusable primitives live in `src/features/shared/components/`. Keep stories colocated with components as `*.stories.jsx`.
 
 ---
 

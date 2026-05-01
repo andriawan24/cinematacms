@@ -1,4 +1,4 @@
-import { Button } from '../../../components';
+import { Button } from '../../shared/components';
 import '../../../static/css/tailwind.css';
 import { Icon } from '../../shared/components/Icon';
 
