@@ -2,13 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../Icon';
 import { Button } from '../Button';
 
-export function GetNotifiedButton({
-	notified = false,
-	className = '',
-	onMouseEnter,
-	onMouseLeave,
-	...props
-}) {
+export function GetNotifiedButton({ notified = false, className = '', onMouseEnter, onMouseLeave, ...props }) {
 	const [hovered, setHovered] = useState(false);
 	const bellIconRef = useRef(null);
 	const previousNotifiedRef = useRef(notified);
