@@ -1,0 +1,14 @@
+@import '../static/css/config/index.scss';
+@import '../static/css/includes/typography/_text_styles.scss';
+@import 'normalize.css/normalize.css';
+
+body {
+	margin: 0;
+	color: var(--body-text-color);
+	background-color: var(--body-bg-color);
+	font-family: 'Inter', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+}
+
+button {
+	cursor: pointer;
+}

@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { Icon } from '../Icon.jsx';
-import { getIconComponent, iconNames } from '../iconRegistry.js';
+import { Icon } from './Icon.jsx';
+import { getIconComponent, iconNames } from './iconRegistry.js';
 
 describe('iconRegistry', () => {
 	it('auto-registers shared icons from filenames', () => {

@@ -1,4 +1,4 @@
-.PHONY: docker-up docker-down docker-restart docker-logs docker-ps docker-clean docker-build docker-shell-db docker-shell-redis sync help dev-server start-celery-beat stop-celery-beat start-celery-long stop-celery-long start-celery-short stop-celery-short start-celery-whisper stop-celery-whisper celery-beat-start celery-beat-stop celery-beat-restart celery-long-start celery-long-stop celery-long-restart celery-short-start celery-short-stop celery-short-restart celery-whisper-start celery-whisper-stop celery-whisper-restart celery-start-all celery-stop-all celery-restart-all celery-status frontend-build frontend-dev frontend-clean quick-build test lint test-ci
+.PHONY: docker-up docker-down docker-restart docker-logs docker-ps docker-clean docker-build docker-shell-db docker-shell-redis sync help dev-server start-celery-beat stop-celery-beat start-celery-long stop-celery-long start-celery-short stop-celery-short start-celery-whisper stop-celery-whisper celery-beat-start celery-beat-stop celery-beat-restart celery-long-start celery-long-stop celery-long-restart celery-short-start celery-short-stop celery-short-restart celery-whisper-start celery-whisper-stop celery-whisper-restart celery-start-all celery-stop-all celery-restart-all celery-status frontend-build frontend-dev storybook storybook-build storybook-test frontend-clean quick-build test lint test-ci
 
 # Docker compose file to use
 COMPOSE_FILE = docker-compose.dev.yml
@@ -42,6 +42,9 @@ help:
 	@echo "Frontend Commands:"
 	@echo "  make frontend-build  - Build all frontend packages and collect static"
 	@echo "  make frontend-dev    - Start frontend development server"
+	@echo "  make storybook - Start Storybook for shared components"
+	@echo "  make storybook-build - Build static Storybook output"
+	@echo "  make storybook-test - Run shared component tests"
 	@echo "  make frontend-clean  - Clean frontend build directories"
 	@echo "  make quick-build     - Quick frontend build (main app only)"
 	@echo ""
@@ -234,9 +237,22 @@ frontend-dev:
 	@echo "Starting frontend development server..."
 	cd frontend && npm run dev
 
+storybook:
+	@echo "Starting Storybook..."
+	cd frontend && npm run storybook
+
+storybook-build:
+	@echo "Building Storybook..."
+	cd frontend && npm run build-storybook
+
+storybook-test:
+	@echo "Running shared component tests..."
+	cd frontend && npm run test:components
+
 frontend-clean:
 	@echo "Cleaning frontend build directories..."
 	rm -rf frontend/build/production
+	rm -rf frontend/storybook-static
 	rm -rf frontend/packages/vjs-plugin/dist
 	rm -rf frontend/packages/vjs-plugin-font-icons/dist
 	rm -rf frontend/packages/media-player/dist
