@@ -27,7 +27,7 @@ export class ManageMediaPage extends Page {
 			currentPage: 1,
 			requestUrl: ApiUrlContext._currentValue.manage.media,
 			pageTitle: props.title,
-			hiddenFilters: true,
+			hiddenFilters: false,
 			filterArgs: '',
 			sortingArgs: '',
 			sortBy: 'add_date',
@@ -85,11 +85,12 @@ export class ManageMediaPage extends Page {
 		/*if( 1 === this.state.currentPage ){*/
 		this.setState({
 			filterArgs: newArgs.join('&'),
+			currentPage: 1,
 			requestUrl: genReqUrl(
 				ApiUrlContext._currentValue.manage.media,
 				newArgs.join('&'),
 				this.state.sortingArgs,
-				this.state.currentPage
+				1
 			),
 		});
 		/*}
