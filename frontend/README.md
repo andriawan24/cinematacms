@@ -27,11 +27,27 @@ This pre-installation refers to specific sub-packages within the folder, namely 
 
 ## **Development**
 
-    npm run start
+    npm run dev
 
-Open in browser: [localhost:8088](http://localhost:8088)
+Open in browser: [localhost:5173](http://localhost:5173)
 
-- Sitemap: [localhost:8088/sitemap.html](http://localhost:8088/sitemap.html)
+- Django app still runs separately in local development. See `docs/technical/FRONTEND_WORKFLOW.md` for full workflow.
+
+## **Storybook**
+
+Run isolated shared-component workbench from `frontend/`:
+
+    npm run storybook
+
+Build static Storybook:
+
+    npm run build-storybook
+
+Run shared component tests:
+
+    npm run test:components
+
+Shared reusable primitives live in `src/features/shared/components/`. Keep stories colocated with components as `*.stories.jsx`.
 
 ---
 

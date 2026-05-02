@@ -1,5 +1,6 @@
+import { Button } from '../../shared/components';
 import '../../../static/css/tailwind.css';
-import { Icon } from '../../shared/components/Icon.jsx';
+import { Icon } from '../../shared/components/Icon';
 
 export function HomePage() {
 	return (
@@ -30,11 +31,8 @@ export function HomePage() {
 								existing rendering and continue reading the same server-side theme variables.
 							</p>
 							<div className="mt-6 flex flex-wrap gap-3">
-								<a
-									href="/latest"
-									className="body-body-16-bold rounded-full bg-cinemata-sunset-horizon-300 px-5 py-3 text-cinemata-white no-underline transition hover:bg-cinemata-sunset-horizon-500"
-								>
-									Explore latest films
+								<a href="/latest">
+									<Button variant="primary">Browse films</Button>
 								</a>
 								<a
 									href="/?ui=revamp"

@@ -1,4 +1,4 @@
-const iconModules = import.meta.glob('../icons/*.svg', {
+const iconModules = import.meta.glob('../../icons/*.svg', {
 	query: '?react',
 	import: 'default',
 	eager: true,

@@ -43,3 +43,7 @@ cms/maintenance_timing.json.lock
 
 # Frontend environment files
 frontend/.env
+
+# Storybook generated artifacts
+frontend/storybook-static/
+frontend/debug-storybook.log
