@@ -35,6 +35,8 @@ class MediaSerializer(serializers.ModelSerializer):
         return self.context["request"].build_absolute_uri(obj.get_absolute_url(api=True))
 
     def get_thumbnail_url(self, obj):
+        if not obj.thumbnail_url:
+            return None
         return self.context["request"].build_absolute_uri(obj.thumbnail_url)
 
     def get_author_profile(self, obj):
@@ -99,9 +101,15 @@ class MediaSerializer(serializers.ModelSerializer):
 
 class ManageUploadSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
 
     def get_url(self, obj):
         return self.context["request"].build_absolute_uri(obj.get_absolute_url())
+
+    def get_thumbnail_url(self, obj):
+        if not obj.thumbnail_url:
+            return None
+        return self.context["request"].build_absolute_uri(obj.thumbnail_url)
 
     class Meta:
         model = Media
@@ -109,6 +117,7 @@ class ManageUploadSerializer(serializers.ModelSerializer):
             "friendly_token",
             "title",
             "url",
+            "thumbnail_url",
             "add_date",
             "media_type",
             "encoding_status",
