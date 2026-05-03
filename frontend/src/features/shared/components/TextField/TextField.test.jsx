@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TextField } from './TextField';
 
 describe('TextField', () => {
@@ -12,9 +13,8 @@ describe('TextField', () => {
 		expect(shell.className).toContain('bg-cinemata-neutral-50');
 		expect(shell.className).toContain('border-cinemata-pacific-deep-500');
 		expect(shell.className).toContain('hover:bg-cinemata-pacific-deep-50');
-		expect(shell.className).toContain('focus-within:border-cinemata-coral-reef-400p');
 		expect(shell.className).toContain('dark:bg-cinemata-pacific-deep-900');
-		expect(shell.className).toContain('dark:hover:bg-cinemata-pacific-deep-500');
+		expect(shell.className).toContain('dark:hover:bg-cinemata-pacific-deep-800');
 		expect(input.className).toContain('text-cinemata-pacific-deep-900');
 		expect(input.className).toContain('dark:text-cinemata-strait-blue-50');
 		expect(input.className).toContain('placeholder:text-cinemata-pacific-deep-400');
@@ -31,35 +31,68 @@ describe('TextField', () => {
 		const label = screen.getByText('Dark title');
 
 		expect(shell.className).toContain('dark:bg-cinemata-pacific-deep-900');
-		expect(shell.className).toContain('dark:focus-within:border-cinemata-sunset-horizon-400p');
+		expect(shell.className).toContain('dark:border-cinemata-pacific-deep-500');
 		expect(label.className).toContain('text-cinemata-pacific-deep-900');
 		expect(label.className).toContain('dark:text-cinemata-strait-blue-50');
 		expect(input.className).toContain('dark:text-cinemata-strait-blue-50');
-		expect(input.className).toContain('dark:group-focus-within:text-cinemata-strait-blue-50');
-		expect(input.className).toContain('dark:group-focus-within:placeholder:text-cinemata-pacific-deep-300');
+		expect(input.className).toContain('dark:placeholder:text-cinemata-pacific-deep-300');
 	});
 
 	it('supports shell padding overrides via className and forwards input props', () => {
 		render(<TextField label="Custom field" className="px-4" name="headline" defaultValue="Blue Boat" />);
 
 		const input = screen.getByLabelText('Custom field');
-		const container = input.parentElement.parentElement;
+		const shell = input.parentElement;
+		const container = shell.parentElement;
+		const label = screen.getByText('Custom field');
 
 		expect(container.className).toContain('px-4');
+		expect(shell.className).toContain('border-cinemata-coral-reef-400p');
+		expect(shell.className).toContain('dark:border-cinemata-sunset-horizon-400p');
+		expect(label.className).toContain('text-cinemata-pacific-deep-400');
+		expect(label.className).toContain('dark:text-cinemata-pacific-deep-300');
 		expect(input).toHaveAttribute('name', 'headline');
 		expect(input).toHaveValue('Blue Boat');
 	});
 
-	it('uses focus-within classes for active styling without extra props', () => {
-		render(<TextField label="Focused field" />);
+	it('keeps active state while typing and applies active border colors', async () => {
+		const user = userEvent.setup();
+		render(<TextField label="Focused field" placeholder="Type title" />);
 
 		const input = screen.getByLabelText('Focused field');
+		const label = screen.getByText('Focused field');
 		const shell = input.parentElement;
 
-		expect(shell.className).toContain('focus-within:border-cinemata-coral-reef-400p');
-		expect(shell.className).toContain('dark:focus-within:border-cinemata-sunset-horizon-400p');
-		expect(shell.className).toContain('focus-within:bg-cinemata-neutral-50');
-		expect(shell.className).toContain('dark:focus-within:bg-cinemata-pacific-deep-900');
+		await user.click(input);
+		expect(label.className).toContain('text-cinemata-pacific-deep-400');
+		expect(label.className).toContain('dark:text-cinemata-pacific-deep-300');
+		expect(shell.className).toContain('border-cinemata-coral-reef-400p');
+		expect(shell.className).toContain('dark:border-cinemata-sunset-horizon-400p');
+		expect(input.className).toContain('placeholder:text-cinemata-pacific-deep-400');
+		expect(input.className).toContain('dark:placeholder:text-cinemata-pacific-deep-300');
+
+		await user.type(input, 'A');
+		expect(label.className).toContain('text-cinemata-pacific-deep-400');
+		expect(label.className).toContain('dark:text-cinemata-pacific-deep-300');
+		expect(shell.className).toContain('border-cinemata-coral-reef-400p');
+		expect(shell.className).toContain('dark:border-cinemata-sunset-horizon-400p');
+	});
+
+	it('switches to filled border colors in real time when user enters a value', async () => {
+		const user = userEvent.setup();
+		render(<TextField label="Filled field" />);
+
+		const input = screen.getByLabelText('Filled field');
+		const shell = input.parentElement;
+
+		expect(shell.className).not.toContain('border-cinemata-coral-reef-400p');
+
+		await user.type(input, 'Hello');
+
+		expect(shell.className).toContain('border-cinemata-coral-reef-400p');
+		expect(shell.className).toContain('dark:border-cinemata-sunset-horizon-400p');
+		expect(screen.getByText('Filled field').className).toContain('text-cinemata-pacific-deep-400');
+		expect(screen.getByText('Filled field').className).toContain('dark:text-cinemata-pacific-deep-300');
 	});
 
 	it('uses error tokens and aria-invalid when invalid', () => {
@@ -72,7 +105,7 @@ describe('TextField', () => {
 
 		expect(shell.className).toContain('border-cinemata-red-500');
 		expect(label.className).toContain('text-cinemata-red-500');
-		expect(label.className).toContain('dark:text-cinemata-red-50');
+		expect(label.className).toContain('dark:text-cinemata-red-500');
 		expect(helperText.className).toContain('text-cinemata-red-500');
 		expect(input).toHaveAttribute('aria-invalid', 'true');
 		expect(input).toHaveAccessibleDescription('Title is required.');
@@ -88,8 +121,8 @@ describe('TextField', () => {
 		expect(shell.className).toContain('bg-cinemata-neutral-50');
 		expect(shell.className).toContain('border-cinemata-red-500');
 		expect(label.className).toContain('text-cinemata-red-500');
-		expect(input.className).toContain('text-cinemata-strait-blue-50');
-		expect(input.className).toContain('placeholder:text-cinemata-pacific-deep-300');
+		expect(input.className).toContain('text-cinemata-pacific-deep-900');
+		expect(input.className).toContain('placeholder:text-cinemata-pacific-deep-900');
 
 		rerender(<TextField label="Title" helperText="Unavailable" disabled />);
 
