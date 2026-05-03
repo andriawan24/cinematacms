@@ -44,6 +44,7 @@ export const decorators = [
 		if (typeof document !== 'undefined') {
 			const mode = context.globals.colorMode === 'light' ? 'light' : 'dark';
 
+			document.documentElement.classList.toggle('dark', mode === 'dark');
 			document.body.classList.toggle('light_theme', mode === 'light');
 			document.body.classList.toggle('dark_theme', mode === 'dark');
 			document.documentElement.style.colorScheme = mode;

@@ -6,7 +6,7 @@ import { getIconComponent, iconNames } from './iconRegistry.js';
 
 describe('iconRegistry', () => {
 	it('auto-registers shared icons from filenames', () => {
-		expect(iconNames).toContain('exampleIcon');
+		expect(iconNames).toContain('example');
 	});
 
 	it('does not resolve inherited Object.prototype keys as icons', () => {
@@ -16,8 +16,8 @@ describe('iconRegistry', () => {
 
 describe('Icon', () => {
 	it('renders a registered icon as decorative by default', () => {
-		const { container } = render(<Icon name="exampleIcon" />);
-		const svg = container.querySelector('svg[data-icon="exampleIcon"]');
+		const { container } = render(<Icon name="example" />);
+		const svg = container.querySelector('svg[data-icon="example"]');
 
 		expect(svg).not.toBeNull();
 		expect(svg).toHaveAttribute('aria-hidden', 'true');
@@ -25,14 +25,14 @@ describe('Icon', () => {
 	});
 
 	it('renders an accessible icon when a label is provided', () => {
-		render(<Icon name="exampleIcon" label="Example icon" />);
+		render(<Icon name="example" label="Example icon" />);
 
 		expect(screen.getByRole('img', { name: 'Example icon' })).toBeInTheDocument();
 	});
 
 	it('applies numeric sizing through inline styles', () => {
-		const { container } = render(<Icon name="exampleIcon" size={30} />);
-		const svg = container.querySelector('svg[data-icon="exampleIcon"]');
+		const { container } = render(<Icon name="example" size={30} />);
+		const svg = container.querySelector('svg[data-icon="example"]');
 
 		expect(svg).toHaveStyle({ width: '30px', height: '30px' });
 	});

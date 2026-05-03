@@ -163,7 +163,7 @@ export const CustomBadgeIcon = {
 		name: 'Layla Hart',
 		size: 'lg',
 		src: sampleAvatars[1].src,
-		badgeIcon: 'iconAddedFavorite',
+		badgeIcon: 'addedFavorite',
 		badgeType: 'added-favorite',
 		label: 'Added favorite',
 	},

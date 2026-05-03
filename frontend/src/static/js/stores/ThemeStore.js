@@ -45,6 +45,8 @@ function initMode(cachedValue, defaultValue) {
 }
 
 function onModeChange(mode) {
+	document.documentElement.classList.toggle('dark', 'dark' === mode);
+
 	if ('dark' === mode) {
 		addClassname(document.body, 'dark_theme');
 	} else {

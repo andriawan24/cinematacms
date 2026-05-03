@@ -44,7 +44,7 @@ describe('Avatar', () => {
 		render(<Avatar name="Tariq Akbar" src="https://example.com/avatar.jpg" size="small" badgeType="comment" label="Has messages" />);
 
 		const badge = screen.getByRole('img', { name: 'Has messages' });
-		const badgeIcon = badge.querySelector('[data-badge-icon="iconCommentBlue"]');
+		const badgeIcon = badge.querySelector('[data-badge-icon="commentBlue"]');
 
 		expect(badge).toHaveStyle({ width: 'var(--size-28)', height: 'var(--size-28)' });
 		expect(badge.className).toContain('right-[-8px]');
@@ -65,13 +65,13 @@ describe('Avatar', () => {
 
 		let badge = screen.getByRole('img', { name: 'Added favorite' });
 		expect(badge.className).toContain('bg-cinemata-sunset-horizon-800');
-		expect(badge.querySelector('[data-badge-icon="iconAddedFavorite"]')).not.toBeNull();
+		expect(badge.querySelector('[data-badge-icon="addedFavorite"]')).not.toBeNull();
 
 		rerender(<Avatar name="Mina Sato" src="https://example.com/avatar.jpg" badgeType="like" label="Like" />);
 
 		badge = screen.getByRole('img', { name: 'Like' });
 		expect(badge.className).toContain('bg-cinemata-red-950');
-		expect(badge.querySelector('[data-badge-icon="iconThumbsUpRed"]')).not.toBeNull();
+		expect(badge.querySelector('[data-badge-icon="thumbsUpRed"]')).not.toBeNull();
 	});
 
 	it('supports a custom badge icon name without requiring a JSX icon object', () => {
@@ -79,13 +79,13 @@ describe('Avatar', () => {
 			<Avatar
 				name="Layla Hart"
 				src="https://example.com/avatar.jpg"
-				badgeIcon="iconAddedFavorite"
+				badgeIcon="addedFavorite"
 				label="Added favorite"
 			/>
 		);
 
 		const badge = screen.getByRole('img', { name: 'Added favorite' });
 
-		expect(badge.querySelector('[data-badge-icon="iconAddedFavorite"]')).not.toBeNull();
+		expect(badge.querySelector('[data-badge-icon="addedFavorite"]')).not.toBeNull();
 	});
 });

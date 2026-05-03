@@ -9,7 +9,7 @@ const meta = {
 		docs: {
 			description: {
 				component:
-					'Atomic text input with Cinemata tokens for default, hover, focus, error, and disabled states. Active styling is driven by native focus, not a separate prop.',
+					'Atomic text input with light base styles and `dark:` overrides. Dark mode activates when a `.dark` class exists on an ancestor, matching the app root theme toggle. Active styling is driven by native focus, not a separate prop.',
 			},
 		},
 	},

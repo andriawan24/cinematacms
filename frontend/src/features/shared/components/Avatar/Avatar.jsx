@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { Icon } from '../Icon';
 
 const AVATAR_SIZES = {
-	sm: {
+	small: {
 		dimension: 'var(--size-28)',
 		textClassName: 'body-body-12-bold',
 	},
-	lg: {
+	large: {
 		dimension: 'var(--size-32)',
 		textClassName: 'body-body-14-bold',
 	},
@@ -15,17 +15,17 @@ const AVATAR_SIZES = {
 const BADGE_VARIANTS = {
 	comment: {
 		className: 'bg-cinemata-strait-blue-900',
-		iconName: 'iconCommentBlue',
+		iconName: 'commentBlue',
 		label: 'Comment',
 	},
 	'added-favorite': {
 		className: 'bg-cinemata-sunset-horizon-800',
-		iconName: 'iconAddedFavorite',
+		iconName: 'addedFavorite',
 		label: 'Added favorite',
 	},
 	like: {
 		className: 'bg-cinemata-red-950',
-		iconName: 'iconThumbsUpRed',
+		iconName: 'thumbsUpRed',
 		label: 'Like',
 	},
 };
@@ -35,11 +35,19 @@ function joinClasses(...classes) {
 }
 
 function getNormalizedSize(size) {
+	if (size === 'sm') {
+		return 'small';
+	}
+
+	if (size === 'lg') {
+		return 'large';
+	}
+
 	if (size && Object.hasOwn(AVATAR_SIZES, size)) {
 		return size;
 	}
 
-	return 'sm';
+	return 'small';
 }
 
 function getInitials(name) {
@@ -71,7 +79,7 @@ export function Avatar({
 	className = '',
 	label = '',
 	name = '',
-	size = 'sm',
+	size = 'small',
 	src = '',
 	onError,
 	style,
@@ -88,7 +96,7 @@ export function Avatar({
 		<Icon
 			name={resolvedBadgeIconName}
 			decorative
-			size={size == 'sm' ? 'xs' : 'sm'}
+			size={normalizedSize === 'small' ? 'xs' : 'sm'}
 			data-badge-icon={resolvedBadgeIconName}
 		/>
 	) : null;
@@ -103,6 +111,8 @@ export function Avatar({
 			{...props}
 			className={joinClasses('relative inline-flex shrink-0 align-top overflow-visible rounded-full', className)}
 			style={{
+				width: sizeConfig.dimension,
+				height: sizeConfig.dimension,
 				...style,
 			}}
 			role={showImage ? undefined : 'img'}
@@ -114,21 +124,14 @@ export function Avatar({
 						src={src}
 						alt={accessibleName}
 						className="h-full w-full object-cover"
-						style={{
-							width: sizeConfig.dimension,
-							height: sizeConfig.dimension,
-						}}
 						onError={(event) => {
 							setShowImage(false);
 							onError?.(event);
 						}}
 					/>
 				) : (
-					<span
-						aria-hidden="true"
-						className={joinClasses('leading-none uppercase', sizeConfig.textClassName)}
-					>
-						{initials}
+					<span aria-hidden="true" className="inline-flex h-full w-full items-center justify-center">
+						<span className={joinClasses('leading-none uppercase', sizeConfig.textClassName)}>{initials}</span>
 					</span>
 				)}
 			</span>
@@ -136,9 +139,14 @@ export function Avatar({
 			{resolvedBadgeIcon ? (
 				<span
 					className={joinClasses(
-						'absolute right-[-8px] bottom-[-20px] inline-flex items-center justify-center rounded-full border-[3px] border-cinemata-pacific-deep-900 p-[6px] text-cinemata-strait-blue-100',
+						'absolute right-[-8px] bottom-[-20px] inline-flex items-center justify-center rounded-full border-[3px] border-cinemata-pacific-deep-900 p-[7px] text-cinemata-strait-blue-100',
 						badgeVariant?.className || 'bg-cinemata-strait-blue-900'
 					)}
+					style={{
+						width: sizeConfig.dimension,
+						height: sizeConfig.dimension,
+						boxSizing: 'border-box',
+					}}
 					role={resolvedBadgeLabel ? 'img' : undefined}
 					aria-hidden={resolvedBadgeLabel ? undefined : 'true'}
 					aria-label={resolvedBadgeLabel || undefined}
