@@ -34,6 +34,11 @@ export const parameters = {
 			date: /Date$/i,
 		},
 	},
+	options: {
+		storySort: {
+			order: ['Introduction', ['Overview', 'Guide'], 'Design System'],
+		},
+	},
 	docs: {
 		theme: themes.dark,
 	},

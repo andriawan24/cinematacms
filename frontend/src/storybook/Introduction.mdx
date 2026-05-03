@@ -1,0 +1,40 @@
+import { Meta, Title, Subtitle, Heading, Canvas } from '@storybook/addon-docs/blocks';
+import * as ButtonStories from '../features/shared/components/Button/Button.stories';
+import * as TextFieldStories from '../features/shared/components/TextField/TextField.stories';
+
+<Meta title="Introduction/Overview" />
+
+<Title>Storybook Introduction</Title>
+<Subtitle>Shared UI reference for CinemataCMS frontend components</Subtitle>
+
+Storybook is the living workspace for the shared component library. Use it to review states, verify light and dark mode behavior, and document reusable UI patterns before they spread across the application.
+
+<Heading>What lives here</Heading>
+
+- Shared atomic components from `src/features/shared/components`
+- Interactive controls for common props and content
+- Reference states for default, focus, error, and disabled behavior
+- Theme previews through the Storybook toolbar color mode toggle
+
+<Heading>How to use it</Heading>
+
+1. Open a component from the `Design System` section in the sidebar.
+2. Use the `Color mode` toolbar toggle to preview light and dark rendering.
+3. Adjust props in `Controls` to validate content, error states, and disabled behavior.
+4. Use `Docs` view when you need prop descriptions and implementation guidance.
+
+<Heading>Quick examples</Heading>
+
+<Canvas of={ButtonStories.Primary} />
+
+<Canvas of={TextFieldStories.Default} />
+
+<Heading>Theme behavior</Heading>
+
+The Storybook toolbar updates the same theme classes used by the app shell:
+
+- Light mode adds `body.light_theme`
+- Dark mode adds `body.dark_theme`
+- Tailwind `dark:` utilities are enabled through `html.dark`
+
+That means component previews can validate both the legacy CSS-variable theme system and the newer Tailwind dark-mode utilities together.
