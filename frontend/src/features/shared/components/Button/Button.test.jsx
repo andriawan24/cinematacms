@@ -84,6 +84,17 @@ describe('Button', () => {
 		expect(button.className).toContain('hover:text-cinemata-strait-blue-800');
 	});
 
+	it('renders icon-only variant without label spacing or background tokens', () => {
+		render(<Button variant="icon" icon={<TestIcon />} aria-label="More actions" />);
+
+		const button = screen.getByRole('button', { name: 'More actions' });
+
+		expect(button.className).toContain('bg-transparent');
+		expect(button.className).toContain('p-0');
+		expect(screen.queryByText('More actions')).not.toBeInTheDocument();
+		expect(button.querySelectorAll('span')).toHaveLength(1);
+	});
+
 	it('uses requested text color token classes when provided', () => {
 		render(
 			<Button variant="text" color="red-500">

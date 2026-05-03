@@ -30,7 +30,7 @@ const meta = {
 		},
 		variant: {
 			control: 'radio',
-			options: ['primary', 'secondary', 'special', 'primary-outline', 'secondary-outline', 'text'],
+			options: ['primary', 'secondary', 'special', 'primary-outline', 'secondary-outline', 'text', 'icon'],
 		},
 	},
 };
@@ -101,5 +101,22 @@ export const Text = {
 		children: 'Read more',
 		variant: 'text',
 		color: 'strait-blue-600p',
+	},
+};
+
+export const IconOnly = {
+	args: {
+		children: undefined,
+		variant: 'icon',
+		icon: <Icon name="notificationBell" decorative />,
+		'aria-label': 'Open notifications',
+	},
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const button = canvas.getByRole('button', { name: 'Open notifications' });
+
+		await expect(button).toBeVisible();
+		await expect(button.querySelector('svg')).not.toBeNull();
+		await expect(button).toHaveTextContent('');
 	},
 };

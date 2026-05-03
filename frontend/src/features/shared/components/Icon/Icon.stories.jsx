@@ -13,7 +13,16 @@ const meta = {
 	argTypes: {
 		name: {
 			control: 'select',
-			options: ['notificationBell', 'followUser', 'check', 'spark', 'exampleIcon'],
+			options: [
+				'notificationBell',
+				'followUser',
+				'check',
+				'spark',
+				'exampleIcon',
+				'iconCommentBlue',
+				'iconAddedFavorite',
+				'iconThumbsUpRed',
+			],
 		},
 		size: {
 			control: 'radio',
