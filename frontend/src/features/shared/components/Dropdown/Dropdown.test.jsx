@@ -10,7 +10,9 @@ const OPTIONS = [
 
 describe('Dropdown', () => {
 	it('renders placeholder, label, helper text, and chevron icon classes', () => {
-		render(<Dropdown label="Category" placeholder="Choose category" helperText="Pick one option" options={OPTIONS} />);
+		render(
+			<Dropdown label="Category" placeholder="Choose category" helperText="Pick one option" options={OPTIONS} />
+		);
 
 		const trigger = screen.getByRole('button', { name: 'Choose category' });
 		const shell = trigger.parentElement;

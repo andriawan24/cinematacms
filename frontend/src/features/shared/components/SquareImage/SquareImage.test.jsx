@@ -21,7 +21,9 @@ describe('SquareImage', () => {
 	});
 
 	it('shows dim overlay and spinning loading icon while loading', () => {
-		const { container } = render(<SquareImage alt="Loading artwork" src="https://example.com/poster.jpg" loading />);
+		const { container } = render(
+			<SquareImage alt="Loading artwork" src="https://example.com/poster.jpg" loading />
+		);
 
 		const wrapper = container.firstChild;
 		const loadingIcon = container.querySelector('svg[data-icon="loading"]');

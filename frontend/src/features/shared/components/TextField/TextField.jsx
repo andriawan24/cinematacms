@@ -3,10 +3,8 @@ import { forwardRef, useEffect, useId, useState } from 'react';
 const SHELL_VARIANT_CLASSES = {
 	default:
 		'bg-cinemata-neutral-50 hover:bg-cinemata-pacific-deep-50 focus-within:bg-cinemata-neutral-50 dark:bg-cinemata-pacific-deep-900 dark:hover:bg-cinemata-pacific-deep-800 dark:focus-within:bg-cinemata-pacific-deep-900',
-	error:
-		'bg-cinemata-neutral-50 dark:bg-cinemata-pacific-deep-900',
-	disabled:
-		'bg-cinemata-pacific-deep-50 dark:bg-cinemata-pacific-deep-900',
+	error: 'bg-cinemata-neutral-50 dark:bg-cinemata-pacific-deep-900',
+	disabled: 'bg-cinemata-pacific-deep-50 dark:bg-cinemata-pacific-deep-900',
 };
 
 const LABEL_VARIANT_CLASSES = {
@@ -22,8 +20,7 @@ const INPUT_VARIANT_CLASSES = {
 };
 
 const PLACEHOLDER_VARIANT_CLASSES = {
-	default:
-		'placeholder:text-cinemata-pacific-deep-400 dark:placeholder:text-cinemata-pacific-deep-300',
+	default: 'placeholder:text-cinemata-pacific-deep-400 dark:placeholder:text-cinemata-pacific-deep-300',
 	error: 'placeholder:text-cinemata-pacific-deep-900 dark:placeholder:text-cinemata-strait-blue-50',
 	disabled: 'placeholder:text-cinemata-pacific-deep-400 dark:placeholder:text-cinemata-pacific-deep-300',
 };
@@ -84,13 +81,9 @@ export const TextField = forwardRef(function TextField(
 	const activeState = variant === 'default' && isFocused;
 	const filledState = variant === 'default' && hasValue;
 	const labelClasses =
-		variant === 'default' && (activeState || filledState)
-			? LABEL_ACTIVE_CLASSES
-			: LABEL_VARIANT_CLASSES[variant];
+		variant === 'default' && (activeState || filledState) ? LABEL_ACTIVE_CLASSES : LABEL_VARIANT_CLASSES[variant];
 	const borderClasses =
-		variant === 'default' && (activeState || filledState)
-			? ACTIVE_BORDER_CLASSES
-			: BORDER_VARIANT_CLASSES[variant];
+		variant === 'default' && (activeState || filledState) ? ACTIVE_BORDER_CLASSES : BORDER_VARIANT_CLASSES[variant];
 
 	useEffect(() => {
 		if (value !== undefined) {
@@ -109,13 +102,7 @@ export const TextField = forwardRef(function TextField(
 				)}
 			>
 				{label ? (
-					<label
-						htmlFor={inputId}
-						className={joinClasses(
-							'body-body-16-regular mb-2 block',
-							labelClasses
-						)}
-					>
+					<label htmlFor={inputId} className={joinClasses('body-body-16-regular mb-2 block', labelClasses)}>
 						{label}
 					</label>
 				) : null}
@@ -153,7 +140,10 @@ export const TextField = forwardRef(function TextField(
 			</div>
 
 			{helperText ? (
-				<p id={helperTextId} className={joinClasses('body-body-12-regular mt-[7.5px]', HELPER_VARIANT_CLASSES[variant])}>
+				<p
+					id={helperTextId}
+					className={joinClasses('body-body-12-regular mt-[7.5px]', HELPER_VARIANT_CLASSES[variant])}
+				>
 					{helperText}
 				</p>
 			) : null}

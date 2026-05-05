@@ -5,8 +5,7 @@ const SHELL_VARIANT_CLASSES = {
 	default:
 		'bg-cinemata-neutral-50 hover:bg-cinemata-pacific-deep-50 focus-within:bg-cinemata-neutral-50 dark:bg-cinemata-pacific-deep-900 dark:hover:bg-cinemata-pacific-deep-800 dark:focus-within:bg-cinemata-pacific-deep-900',
 	error: 'bg-cinemata-neutral-50 dark:bg-cinemata-pacific-deep-900',
-	disabled:
-		'bg-cinemata-pacific-deep-50 dark:bg-cinemata-pacific-deep-900',
+	disabled: 'bg-cinemata-pacific-deep-50 dark:bg-cinemata-pacific-deep-900',
 };
 
 const LABEL_VARIANT_CLASSES = {
@@ -22,8 +21,7 @@ const VALUE_VARIANT_CLASSES = {
 };
 
 const PLACEHOLDER_VARIANT_CLASSES = {
-	default:
-		'text-cinemata-pacific-deep-400 dark:text-cinemata-pacific-deep-300',
+	default: 'text-cinemata-pacific-deep-400 dark:text-cinemata-pacific-deep-300',
 	error: 'text-cinemata-pacific-deep-900 dark:text-cinemata-strait-blue-50',
 	disabled: 'text-cinemata-pacific-deep-400 dark:text-cinemata-pacific-deep-300',
 };
@@ -101,13 +99,9 @@ export function Dropdown({
 	const activeState = variant === 'default' && (isFocused || open);
 	const filledState = variant === 'default' && !!selectedOption;
 	const labelClasses =
-		variant === 'default' && (activeState || filledState)
-			? LABEL_ACTIVE_CLASSES
-			: LABEL_VARIANT_CLASSES[variant];
+		variant === 'default' && (activeState || filledState) ? LABEL_ACTIVE_CLASSES : LABEL_VARIANT_CLASSES[variant];
 	const borderClasses =
-		variant === 'default' && (activeState || filledState)
-			? ACTIVE_BORDER_CLASSES
-			: BORDER_VARIANT_CLASSES[variant];
+		variant === 'default' && (activeState || filledState) ? ACTIVE_BORDER_CLASSES : BORDER_VARIANT_CLASSES[variant];
 
 	useEffect(() => {
 		if (!open) {
@@ -179,12 +173,7 @@ export function Dropdown({
 				>
 					<span className="min-w-0 flex-1">
 						{label ? (
-							<span
-								className={joinClasses(
-									'body-body-16-regular mb-2 block',
-									labelClasses
-								)}
-							>
+							<span className={joinClasses('body-body-16-regular mb-2 block', labelClasses)}>
 								{label}
 							</span>
 						) : null}
@@ -195,7 +184,9 @@ export function Dropdown({
 									? VALUE_VARIANT_CLASSES[variant]
 									: joinClasses(
 											PLACEHOLDER_VARIANT_CLASSES[variant],
-											activeState ? 'text-cinemata-pacific-deep-900 dark:text-cinemata-strait-blue-50' : ''
+											activeState
+												? 'text-cinemata-pacific-deep-900 dark:text-cinemata-strait-blue-50'
+												: ''
 										)
 							)}
 						>

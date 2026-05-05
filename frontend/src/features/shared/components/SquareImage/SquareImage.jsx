@@ -55,7 +55,9 @@ export function SquareImage({
 				/>
 			) : null}
 
-			{loading ? <span aria-hidden="true" className="absolute inset-0 bg-cinemata-pacific-deep-800 opacity-80" /> : null}
+			{loading ? (
+				<span aria-hidden="true" className="absolute inset-0 bg-cinemata-pacific-deep-800 opacity-80" />
+			) : null}
 
 			{showCenteredIcon ? (
 				<span aria-hidden="true" className="absolute inset-0 inline-flex items-center justify-center">
@@ -63,10 +65,7 @@ export function SquareImage({
 						name={centeredIconName}
 						decorative
 						size={21}
-						className={joinClasses(
-							'text-cinemata-neutral-50',
-							loading ? 'animate-spin' : ''
-						)}
+						className={joinClasses('text-cinemata-neutral-50', loading ? 'animate-spin' : '')}
 					/>
 				</span>
 			) : null}

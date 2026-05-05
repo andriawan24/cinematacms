@@ -91,11 +91,7 @@ export const Interactive = {
 		const [checked, setChecked] = useState(false);
 
 		return (
-			<CheckboxButton
-				name="password"
-				checked={checked}
-				onChange={(e) => setChecked(e.target.checked)}
-			>
+			<CheckboxButton name="password" checked={checked} onChange={(e) => setChecked(e.target.checked)}>
 				Require Password
 			</CheckboxButton>
 		);
@@ -118,30 +114,17 @@ export const MultipleCheckboxes = {
 	render: function MultipleCheckboxesExample() {
 		const [values, setValues] = useState({ password: true, notify: false, archive: false });
 
-		const toggle = (key) =>
-			setValues((prev) => ({ ...prev, [key]: !prev[key] }));
+		const toggle = (key) => setValues((prev) => ({ ...prev, [key]: !prev[key] }));
 
 		return (
 			<div className="flex flex-col gap-6">
-				<CheckboxButton
-					name="password"
-					checked={values.password}
-					onChange={() => toggle('password')}
-				>
+				<CheckboxButton name="password" checked={values.password} onChange={() => toggle('password')}>
 					Require Password
 				</CheckboxButton>
-				<CheckboxButton
-					name="notify"
-					checked={values.notify}
-					onChange={() => toggle('notify')}
-				>
+				<CheckboxButton name="notify" checked={values.notify} onChange={() => toggle('notify')}>
 					Send Notifications
 				</CheckboxButton>
-				<CheckboxButton
-					name="archive"
-					checked={values.archive}
-					onChange={() => toggle('archive')}
-				>
+				<CheckboxButton name="archive" checked={values.archive} onChange={() => toggle('archive')}>
 					Auto Archive
 				</CheckboxButton>
 			</div>

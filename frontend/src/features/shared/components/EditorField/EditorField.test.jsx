@@ -4,7 +4,9 @@ import { EditorField } from './EditorField';
 
 describe('EditorField', () => {
 	it('renders label, textarea, helper text, and default token classes', () => {
-		render(<EditorField label="Synopsis" placeholder="The Blue Boat sails again" helperText="Visible helper copy" />);
+		render(
+			<EditorField label="Synopsis" placeholder="The Blue Boat sails again" helperText="Visible helper copy" />
+		);
 
 		const textarea = screen.getByLabelText('Synopsis');
 		const shell = textarea.parentElement;
@@ -85,7 +87,9 @@ describe('EditorField', () => {
 	});
 
 	it('uses disabled classes and disabled textarea semantics', () => {
-		render(<EditorField label="Synopsis" helperText="Read only for now." disabled defaultValue="Blue Boat summary" />);
+		render(
+			<EditorField label="Synopsis" helperText="Read only for now." disabled defaultValue="Blue Boat summary" />
+		);
 
 		const textarea = screen.getByLabelText('Synopsis');
 		const shell = textarea.parentElement;

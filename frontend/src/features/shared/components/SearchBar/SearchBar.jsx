@@ -37,10 +37,7 @@ export const SearchBar = forwardRef(function SearchBar(
 				)}
 			/>
 
-			<span
-				aria-hidden="true"
-				className="pointer-events-none absolute top-1/2 right-[22px] -translate-y-1/2"
-			>
+			<span aria-hidden="true" className="pointer-events-none absolute top-1/2 right-[22px] -translate-y-1/2">
 				<Icon name={iconName} size={22} decorative />
 			</span>
 		</div>

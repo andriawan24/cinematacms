@@ -158,7 +158,11 @@ describe('TextField', () => {
 		render(
 			<>
 				<p id="external-description">External description</p>
-				<TextField label="Merge descriptions" helperText="Local helper text" aria-describedby="external-description" />
+				<TextField
+					label="Merge descriptions"
+					helperText="Local helper text"
+					aria-describedby="external-description"
+				/>
 			</>
 		);
 

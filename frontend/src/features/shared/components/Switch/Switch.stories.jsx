@@ -97,13 +97,7 @@ export const Interactive = {
 	render: function InteractiveSwitch(args) {
 		const [checked, setChecked] = useState(args.checked);
 
-		return (
-			<Switch
-				{...args}
-				checked={checked}
-				onChange={(event) => setChecked(event.target.checked)}
-			/>
-		);
+		return <Switch {...args} checked={checked} onChange={(event) => setChecked(event.target.checked)} />;
 	},
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);

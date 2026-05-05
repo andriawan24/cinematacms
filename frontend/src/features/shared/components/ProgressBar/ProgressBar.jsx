@@ -26,7 +26,11 @@ export function ProgressBar({
 	const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
 	const progressPercent = resolveProgressPercent(safeValue, safeMax);
 	const indicatorRadiusClass =
-		progressPercent >= 100 ? 'rounded-full' : progressPercent > 0 ? 'rounded-l-full rounded-r-none' : 'rounded-none';
+		progressPercent >= 100
+			? 'rounded-full'
+			: progressPercent > 0
+				? 'rounded-l-full rounded-r-none'
+				: 'rounded-none';
 
 	return (
 		<div

@@ -131,7 +131,9 @@ export function Avatar({
 					/>
 				) : (
 					<span aria-hidden="true" className="inline-flex h-full w-full items-center justify-center">
-						<span className={joinClasses('leading-none uppercase', sizeConfig.textClassName)}>{initials}</span>
+						<span className={joinClasses('leading-none uppercase', sizeConfig.textClassName)}>
+							{initials}
+						</span>
 					</span>
 				)}
 			</span>

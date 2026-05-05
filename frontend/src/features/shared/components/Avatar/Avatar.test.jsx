@@ -41,7 +41,15 @@ describe('Avatar', () => {
 	});
 
 	it('renders an optional circular badge icon with the requested overlap offsets', () => {
-		render(<Avatar name="Tariq Akbar" src="https://example.com/avatar.jpg" size="small" badgeType="comment" label="Has messages" />);
+		render(
+			<Avatar
+				name="Tariq Akbar"
+				src="https://example.com/avatar.jpg"
+				size="small"
+				badgeType="comment"
+				label="Has messages"
+			/>
+		);
 
 		const badge = screen.getByRole('img', { name: 'Has messages' });
 		const badgeIcon = badge.querySelector('[data-badge-icon="commentBlue"]');
@@ -60,7 +68,12 @@ describe('Avatar', () => {
 
 	it('supports added-favorite and like badge variants with their own icons and fills', () => {
 		const { rerender } = render(
-			<Avatar name="Layla Hart" src="https://example.com/avatar.jpg" badgeType="added-favorite" label="Added favorite" />
+			<Avatar
+				name="Layla Hart"
+				src="https://example.com/avatar.jpg"
+				badgeType="added-favorite"
+				label="Added favorite"
+			/>
 		);
 
 		let badge = screen.getByRole('img', { name: 'Added favorite' });

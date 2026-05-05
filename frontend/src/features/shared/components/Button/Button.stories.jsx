@@ -198,8 +198,7 @@ export const IconText = {
 		color: 'sunset-horizon-300',
 		icon: <PauseIcon />,
 		iconPosition: 'left',
-		className:
-			'rounded-none bg-cinemata-pacific-deep-900 px-3 py-2 hover:bg-cinemata-pacific-deep-950',
+		className: 'rounded-none bg-cinemata-pacific-deep-900 px-3 py-2 hover:bg-cinemata-pacific-deep-950',
 	},
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
