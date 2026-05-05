@@ -77,9 +77,9 @@ describe('TabView', () => {
 		const user = userEvent.setup();
 
 		function ControlledExample() {
-			const [value, setValue] = useState('single');
+			const [selectedTab, setSelectedTab] = useState('single');
 			return (
-				<TabView value={value} onValueChange={setValue} aria-label="Upload mode">
+				<TabView selectedTab={selectedTab} onSelectedTabChange={setSelectedTab} aria-label="Upload mode">
 					<TabContent value="single" title="Single Film Upload" content={<p>Upload one title.</p>} />
 					<TabContent value="bulk" title="Bulk Upload" content={<p>Upload many titles.</p>} />
 				</TabView>
@@ -93,6 +93,18 @@ describe('TabView', () => {
 		await user.click(bulkTab);
 
 		expect(bulkTab).toHaveAttribute('aria-selected', 'true');
+		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload many titles.');
+	});
+
+	it('supports defaultSelectedTab for the simple TabContent API', () => {
+		render(
+			<TabView defaultSelectedTab="bulk" aria-label="Upload mode">
+				<TabContent value="single" title="Single Film Upload" content={<p>Upload one title.</p>} />
+				<TabContent value="bulk" title="Bulk Upload" content={<p>Upload many titles.</p>} />
+			</TabView>
+		);
+
+		expect(screen.getByRole('tab', { name: 'Bulk Upload' })).toHaveAttribute('aria-selected', 'true');
 		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload many titles.');
 	});
 
@@ -115,7 +127,14 @@ describe('TabView', () => {
 
 	it('still supports the array API with dynamic content', async () => {
 		const user = userEvent.setup();
-		render(<TabView tabs={sampleTabs} defaultValue="single" aria-label="Upload mode" renderContent={renderTabContent} />);
+		render(
+			<TabView
+				tabs={sampleTabs}
+				defaultValue="single"
+				aria-label="Upload mode"
+				renderContent={renderTabContent}
+			/>
+		);
 
 		await user.click(screen.getByRole('tab', { name: 'Bulk Upload' }));
 

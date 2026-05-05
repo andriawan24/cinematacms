@@ -15,39 +15,41 @@ const meta = {
 		docs: {
 			description: {
 				component:
-					'Shared tab view with a full-width scrollable tab bar, Cinemata dark surface tokens, and content panels generated from `TabContent` children. It also keeps the lower-level APIs available for more custom layouts.',
+					'Shared tab view with a full-width scrollable tab bar and content panels generated directly from `TabContent` children. Basic usage: `<TabView><TabContent title=\"...\" content={...} /></TabView>`. Use `selectedTab` when you want to control the active tab from outside the component.',
 			},
 		},
 	},
 	argTypes: {
+		selectedTab: {
+			control: 'text',
+			description:
+				'Controlled selected tab identifier. Match this with a `TabContent` `value`, or let titles auto-generate identifiers.',
+			table: {
+				type: { summary: 'string' },
+			},
+		},
+		defaultSelectedTab: {
+			control: 'text',
+			description: 'Initial uncontrolled selected tab identifier.',
+			table: {
+				type: { summary: 'string' },
+			},
+		},
+		onSelectedTabChange: {
+			action: 'selected-tab-changed',
+			description: 'Called with the next selected tab identifier.',
+			table: {
+				type: { summary: '(tabId: string) => void' },
+			},
+		},
 		tabMode: {
 			control: 'radio',
 			options: ['fill', 'wrap'],
-			description: 'Controls whether tabs distribute available width equally or size to their content like Android `fixed` vs `scrollable` tabs.',
+			description:
+				'Controls whether tabs distribute available width equally or size to their content like Android `fixed` vs `scrollable` tabs.',
 			table: {
 				type: { summary: "'fill' | 'wrap'" },
 				defaultValue: { summary: "'fill'" },
-			},
-		},
-		value: {
-			control: 'text',
-			description: 'Controlled selected tab value.',
-			table: {
-				type: { summary: 'string' },
-			},
-		},
-		defaultValue: {
-			control: 'text',
-			description: 'Initial uncontrolled selected tab value.',
-			table: {
-				type: { summary: 'string' },
-			},
-		},
-		onValueChange: {
-			action: 'changed',
-			description: 'Called with the next tab value when selection changes.',
-			table: {
-				type: { summary: '(value: string) => void' },
 			},
 		},
 		className: {
@@ -92,7 +94,7 @@ const meta = {
 		},
 	},
 	args: {
-		defaultValue: 'single-film-upload',
+		defaultSelectedTab: 'single-film-upload',
 		tabMode: 'fill',
 		'aria-label': 'Upload mode',
 	},
@@ -129,25 +131,27 @@ export const Default = {
 
 		await expect(selectedTab).toBeVisible();
 		await expect(selectedTab).toHaveAttribute('aria-selected', 'true');
-		await expect(canvas.getByRole('tabpanel')).toHaveTextContent('Upload one title with its own metadata and assets.');
+		await expect(canvas.getByRole('tabpanel')).toHaveTextContent(
+			'Upload one title with its own metadata and assets.'
+		);
 	},
 };
 
 export const Controlled = {
 	args: {
-		value: 'single-film-upload',
+		selectedTab: 'single-film-upload',
 	},
 	render: (args) => {
-		const [value, setValue] = useState(args.value);
+		const [selectedTab, setSelectedTab] = useState(args.selectedTab);
 
 		return (
 			<TabViewFrame>
 				<TabView
 					{...args}
-					value={value}
-					onValueChange={(nextValue) => {
-						setValue(nextValue);
-						args.onValueChange?.(nextValue);
+					selectedTab={selectedTab}
+					onSelectedTabChange={(nextValue) => {
+						setSelectedTab(nextValue);
+						args.onSelectedTabChange?.(nextValue);
 					}}
 				>
 					<TabContent
@@ -184,10 +188,38 @@ export const Overflow = {
 	render: (args) => (
 		<TabViewFrame>
 			<TabView {...args} aria-label="Upload workflow" tabMode="wrap">
-				<TabContent title="Single Film Upload" content={<p className="body-body-14-regular text-cinemata-white">Upload one title with its own metadata and assets.</p>} />
-				<TabContent title="Bulk Upload" content={<p className="body-body-14-regular text-cinemata-white">Import multiple items in one batch workflow.</p>} />
-				<TabContent title="Schedule Release" content={<p className="body-body-14-regular text-cinemata-white">Set publish timing for upcoming media.</p>} />
-				<TabContent title="Review Settings" content={<p className="body-body-14-regular text-cinemata-white">Confirm the selected upload configuration.</p>} />
+				<TabContent
+					title="Single Film Upload"
+					content={
+						<p className="body-body-14-regular text-cinemata-white">
+							Upload one title with its own metadata and assets.
+						</p>
+					}
+				/>
+				<TabContent
+					title="Bulk Upload"
+					content={
+						<p className="body-body-14-regular text-cinemata-white">
+							Import multiple items in one batch workflow.
+						</p>
+					}
+				/>
+				<TabContent
+					title="Schedule Release"
+					content={
+						<p className="body-body-14-regular text-cinemata-white">
+							Set publish timing for upcoming media.
+						</p>
+					}
+				/>
+				<TabContent
+					title="Review Settings"
+					content={
+						<p className="body-body-14-regular text-cinemata-white">
+							Confirm the selected upload configuration.
+						</p>
+					}
+				/>
 			</TabView>
 		</TabViewFrame>
 	),
@@ -224,16 +256,20 @@ export const WrapContent = {
 export const WithCustomValues = {
 	render: (args) => (
 		<TabViewFrame>
-			<TabView {...args} defaultValue="bulk">
+			<TabView {...args} defaultSelectedTab="bulk">
 				<TabContent
 					value="single"
 					title="Single Film Upload"
-					content={<p className="body-body-14-regular text-cinemata-white">Custom keyed single upload panel.</p>}
+					content={
+						<p className="body-body-14-regular text-cinemata-white">Custom keyed single upload panel.</p>
+					}
 				/>
 				<TabContent
 					value="bulk"
 					title="Bulk Upload"
-					content={<p className="body-body-14-regular text-cinemata-white">Custom keyed bulk upload panel.</p>}
+					content={
+						<p className="body-body-14-regular text-cinemata-white">Custom keyed bulk upload panel.</p>
+					}
 				/>
 			</TabView>
 		</TabViewFrame>

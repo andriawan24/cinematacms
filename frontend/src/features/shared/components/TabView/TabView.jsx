@@ -1,13 +1,4 @@
-import {
-	Children,
-	createContext,
-	isValidElement,
-	useContext,
-	useEffect,
-	useId,
-	useMemo,
-	useState,
-} from 'react';
+import { Children, createContext, isValidElement, useContext, useEffect, useId, useMemo, useState } from 'react';
 
 const TabViewContext = createContext(null);
 
@@ -130,7 +121,8 @@ function TabViewList({ children, className = '' }) {
 }
 
 function TabViewTrigger({ children, value, disabled = false, className = '' }) {
-	const { getPanelId, getTabId, selectedValue, selectValue, triggerItems, tabMode } = useTabViewContext('TabView.Trigger');
+	const { getPanelId, getTabId, selectedValue, selectValue, triggerItems, tabMode } =
+		useTabViewContext('TabView.Trigger');
 	const isSelected = selectedValue === value;
 	const triggerIndex = triggerItems.findIndex((item) => item.value === value);
 
@@ -280,6 +272,9 @@ function SimpleTabContentRenderer({ items, listClassName = '', triggerClassName 
 function TabViewRoot({
 	tabs = [],
 	children,
+	selectedTab,
+	defaultSelectedTab,
+	onSelectedTabChange,
 	value,
 	defaultValue,
 	onValueChange,
@@ -295,24 +290,29 @@ function TabViewRoot({
 	const childTriggerItems = useMemo(() => flattenTabsChildren(children), [children]);
 	const simpleTabContentItems = useMemo(() => extractSimpleTabContentItems(children), [children]);
 	const sourceTabs = tabs.length ? tabs : simpleTabContentItems.length ? simpleTabContentItems : childTriggerItems;
-	const [internalValue, setInternalValue] = useState(() => resolveInitialValue(sourceTabs, defaultValue, value));
-	const selectedValue = value ?? internalValue;
+	const controlledValue = selectedTab ?? value;
+	const uncontrolledDefaultValue = defaultSelectedTab ?? defaultValue;
+	const [internalValue, setInternalValue] = useState(() =>
+		resolveInitialValue(sourceTabs, uncontrolledDefaultValue, controlledValue)
+	);
+	const selectedValue = controlledValue ?? internalValue;
 	const safeSelectedValue = clampTabsValue(sourceTabs, selectedValue);
 
 	useEffect(() => {
-		if (value === undefined) {
+		if (controlledValue === undefined) {
 			setInternalValue((currentValue) => resolveInitialValue(sourceTabs, currentValue, currentValue));
 		}
-	}, [sourceTabs, value]);
+	}, [controlledValue, sourceTabs]);
 
 	function selectValue(nextValue) {
 		const resolvedValue = clampTabsValue(sourceTabs, nextValue);
 
-		if (value === undefined) {
+		if (controlledValue === undefined) {
 			setInternalValue(resolvedValue);
 		}
 
 		if (resolvedValue !== undefined) {
+			onSelectedTabChange?.(resolvedValue);
 			onValueChange?.(resolvedValue);
 		}
 	}
