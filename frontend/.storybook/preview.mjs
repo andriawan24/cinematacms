@@ -40,7 +40,7 @@ export const parameters = {
 				'Introduction',
 				['Overview', 'Guide'],
 				'Components',
-				['Actions', 'Display', 'Inputs'],
+				['Actions', 'Display', 'Inputs', 'Overlays'],
 				'Notification',
 				['Dialog', 'Item'],
 			],

@@ -8,6 +8,8 @@ describe('iconRegistry', () => {
 	it('auto-registers shared icons from filenames', () => {
 		expect(iconNames).toContain('example');
 		expect(iconNames).toContain('magnifyingGlass');
+		expect(iconNames).toContain('infoCircle');
+		expect(iconNames).toContain('info3d');
 	});
 
 	it('does not resolve inherited Object.prototype keys as icons', () => {

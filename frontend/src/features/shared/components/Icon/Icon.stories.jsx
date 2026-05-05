@@ -23,6 +23,8 @@ const meta = {
 				'addedFavorite',
 				'thumbsUpRed',
 				'magnifyingGlass',
+				'infoCircle',
+				'info3d',
 			],
 			description: 'Shared icon name resolved from the SVG registry.',
 			table: {
