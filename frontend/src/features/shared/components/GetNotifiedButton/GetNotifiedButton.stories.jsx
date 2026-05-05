@@ -3,7 +3,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { GetNotifiedButton } from './GetNotifiedButton';
 
 const meta = {
-	title: 'Application/GetNotifiedButton',
+	title: 'Components/Actions/Get Notified Button',
 	component: GetNotifiedButton,
 	tags: ['autodocs'],
 	args: {
@@ -12,6 +12,33 @@ const meta = {
 	argTypes: {
 		notified: {
 			control: 'boolean',
+			description: 'Controls whether the button shows the active notified state.',
+			table: {
+				type: { summary: 'boolean' },
+				defaultValue: { summary: 'false' },
+			},
+		},
+		className: {
+			control: 'text',
+			description: 'Optional extra classes applied to the underlying button.',
+			table: {
+				type: { summary: 'string' },
+				defaultValue: { summary: "''" },
+			},
+		},
+		onClick: {
+			action: 'clicked',
+			description: 'Callback fired when the button is pressed.',
+			table: {
+				type: { summary: '(event: MouseEvent<HTMLButtonElement>) => void' },
+			},
+		},
+		'aria-label': {
+			control: 'text',
+			description: 'Optional accessible label override. Defaults to `Get Notified`.',
+			table: {
+				type: { summary: 'string' },
+			},
 		},
 	},
 };

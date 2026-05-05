@@ -51,7 +51,7 @@ const sampleAvatars = [
 ];
 
 const meta = {
-	title: 'Design System/Avatar',
+	title: 'Components/Display/Avatar',
 	component: Avatar,
 	tags: ['autodocs'],
 	args: {

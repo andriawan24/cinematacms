@@ -8,7 +8,7 @@ const SAMPLE_OPTIONS = [
 ];
 
 const meta = {
-	title: 'Design System/Dropdown',
+	title: 'Components/Inputs/Dropdown',
 	component: Dropdown,
 	tags: ['autodocs'],
 	parameters: {

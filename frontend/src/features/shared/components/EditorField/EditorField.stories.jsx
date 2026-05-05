@@ -2,7 +2,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { EditorField } from './EditorField';
 
 const meta = {
-	title: 'Design System/EditorField',
+	title: 'Components/Inputs/Editor Field',
 	component: EditorField,
 	tags: ['autodocs'],
 	parameters: {

@@ -42,8 +42,12 @@ export const NotificationDialog = forwardRef(function NotificationDialog(
 			</div>
 
 			<div className="max-h-96 overflow-y-auto divide-y divide-border-input/15">
-				{isLoading ? <p className="px-4 py-6 text-center text-sm text-content-body/60">{loadingMessage}</p> : null}
-				{!isLoading && !hasItems ? <p className="px-4 py-6 text-center text-sm text-content-body/60">{emptyMessage}</p> : null}
+				{isLoading ? (
+					<p className="px-4 py-6 text-center text-sm text-content-body/60">{loadingMessage}</p>
+				) : null}
+				{!isLoading && !hasItems ? (
+					<p className="px-4 py-6 text-center text-sm text-content-body/60">{emptyMessage}</p>
+				) : null}
 				{!isLoading && hasItems ? children : null}
 			</div>
 

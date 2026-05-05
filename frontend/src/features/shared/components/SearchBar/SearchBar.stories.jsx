@@ -3,7 +3,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { SearchBar } from './SearchBar';
 
 const meta = {
-	title: 'Design System/SearchBar',
+	title: 'Components/Inputs/Search Bar',
 	component: SearchBar,
 	tags: ['autodocs'],
 	parameters: {

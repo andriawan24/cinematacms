@@ -2,7 +2,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { TextField } from './TextField';
 
 const meta = {
-	title: 'Design System/TextField',
+	title: 'Components/Inputs/Text Field',
 	component: TextField,
 	tags: ['autodocs'],
 	parameters: {

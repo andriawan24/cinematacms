@@ -36,7 +36,14 @@ export const parameters = {
 	},
 	options: {
 		storySort: {
-			order: ['Introduction', ['Overview', 'Guide'], 'Design System'],
+			order: [
+				'Introduction',
+				['Overview', 'Guide'],
+				'Components',
+				['Actions', 'Display', 'Inputs'],
+				'Notification',
+				['Dialog', 'Item'],
+			],
 		},
 	},
 	docs: {

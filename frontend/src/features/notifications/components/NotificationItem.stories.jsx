@@ -29,7 +29,7 @@ const readNotification = {
 };
 
 const meta = {
-	title: 'Notification/NotificationItem',
+	title: 'Notification/Item',
 	component: NotificationItem,
 	tags: ['autodocs'],
 	parameters: {
@@ -46,7 +46,7 @@ const meta = {
 	argTypes: {
 		notification: {
 			control: 'object',
-			description: 'Notification payload used to render actor, message, timestamp, read state, and destination.',
+			description: 'Notification payload used to render actor avatar, message copy, relative timestamp, read state, and destination URL.',
 			table: {
 				type: { summary: 'Notification' },
 			},

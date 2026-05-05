@@ -18,7 +18,7 @@ const sampleNotification = {
 };
 
 const meta = {
-	title: 'Notification/NotificationDialog',
+	title: 'Notification/Dialog',
 	component: NotificationDialog,
 	tags: ['autodocs'],
 	parameters: {
@@ -52,7 +52,7 @@ const meta = {
 			description: 'Optional class overrides applied to the dialog container.',
 			table: {
 				type: { summary: 'string' },
-				defaultValue: { summary: "''" },
+				defaultValue: { summary: "'static top-auto right-auto mt-0'" },
 			},
 		},
 		emptyMessage: {
@@ -112,7 +112,7 @@ const meta = {
 		},
 		title: {
 			control: 'text',
-			description: 'Dialog heading shown in the header.',
+			description: 'Header title shown at the top of the notification container.',
 			table: {
 				type: { summary: 'string' },
 				defaultValue: { summary: "'Notifications'" },
