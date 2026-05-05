@@ -6,3 +6,4 @@ export { GetNotifiedButton } from './GetNotifiedButton';
 export { TextField } from './TextField';
 export { EditorField } from './EditorField';
 export { Dropdown } from './Dropdown';
+export { SearchBar } from './SearchBar';

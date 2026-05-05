@@ -22,6 +22,7 @@ const meta = {
 				'commentBlue',
 				'addedFavorite',
 				'thumbsUpRed',
+				'magnifyingGlass',
 			],
 		},
 		size: {

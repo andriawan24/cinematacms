@@ -7,6 +7,7 @@ import { getIconComponent, iconNames } from './iconRegistry.js';
 describe('iconRegistry', () => {
 	it('auto-registers shared icons from filenames', () => {
 		expect(iconNames).toContain('example');
+		expect(iconNames).toContain('magnifyingGlass');
 	});
 
 	it('does not resolve inherited Object.prototype keys as icons', () => {
