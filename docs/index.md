@@ -78,6 +78,10 @@ Welcome to the comprehensive documentation for CinemataCMS - a platform for show
 - [📈 System Monitoring & Optimization](technical/system_monitoring_and_optimization.md)
 - [📝 TinyMCE Editor Configuration](technical/tinymce.md)
 
+### Frontend Modernization
+- [📚 Storybook Workflow](technical/frontend-modernization/storybook-workflow.md)
+- [🧩 Modern SVG Icon System](technical/frontend-modernization/svg-icon-system.md)
+
 ## 🌐 Platform Features
 
 ### User Experience
