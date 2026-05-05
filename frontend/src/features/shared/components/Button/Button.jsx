@@ -15,6 +15,7 @@ const VARIANT_CLASSES = {
 
 const TEXT_COLOR_CLASSES = {
 	'strait-blue-600p': 'text-cinemata-strait-blue-600p hover:text-cinemata-strait-blue-800',
+	'sunset-horizon-300': 'text-cinemata-sunset-horizon-300 hover:text-cinemata-sunset-horizon-500',
 	'sunset-horizon-500': 'text-cinemata-sunset-horizon-500 hover:text-cinemata-sunset-horizon-700',
 	'pacific-deep-950': 'text-cinemata-pacific-deep-950 hover:text-cinemata-pacific-deep-900',
 	'red-500': 'text-cinemata-red-500 hover:text-cinemata-red-600',
@@ -39,10 +40,6 @@ function joinClasses(...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
-function isRightIconVariant(variant) {
-	return variant === 'special';
-}
-
 function isIconOnlyVariant(variant) {
 	return variant === 'icon';
 }
@@ -52,10 +49,12 @@ export function Button({
 	className = '',
 	color = 'strait-blue-600p',
 	icon = null,
+	iconPosition,
 	type = 'button',
 	variant = 'primary',
 	...props
 }) {
+	const resolvedIconPosition = iconPosition ?? (variant === 'special' ? 'right' : 'left');
 	const iconElement = icon ? (
 		<span
 			aria-hidden="true"
@@ -80,11 +79,11 @@ export function Button({
 			)}
 			{...props}
 		>
-			{iconElement && !isRightIconVariant(variant) ? iconElement : null}
+			{iconElement && resolvedIconPosition !== 'right' ? iconElement : null}
 			{isIconOnlyVariant(variant) ? null : (
 				<span className="inline-flex items-center justify-center leading-none">{children}</span>
 			)}
-			{iconElement && isRightIconVariant(variant) ? iconElement : null}
+			{iconElement && resolvedIconPosition === 'right' ? iconElement : null}
 		</button>
 	);
 }

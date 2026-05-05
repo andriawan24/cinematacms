@@ -110,12 +110,23 @@ describe('Button', () => {
 
 	it('supports strait blue and neutral text color options', () => {
 		const { rerender } = render(
+			<Button variant="text" color="sunset-horizon-300">
+				Pause
+			</Button>
+		);
+
+		let button = screen.getByRole('button', { name: 'Pause' });
+
+		expect(button.className).toContain('text-cinemata-sunset-horizon-300');
+		expect(button.className).toContain('hover:text-cinemata-sunset-horizon-500');
+
+		rerender(
 			<Button variant="text" color="strait-blue-100">
 				Soft link
 			</Button>
 		);
 
-		let button = screen.getByRole('button', { name: 'Soft link' });
+		button = screen.getByRole('button', { name: 'Soft link' });
 
 		expect(button.className).toContain('text-cinemata-strait-blue-100');
 		expect(button.className).toContain('hover:text-cinemata-strait-blue-400');
@@ -150,6 +161,21 @@ describe('Button', () => {
 
 		const button = screen.getByRole('button', { name: 'See all' });
 		const label = screen.getByText('See all');
+		const icon = screen.getByTestId('left-icon');
+
+		expect(label.nextElementSibling).toBe(icon.parentElement);
+		expect(button.firstElementChild).toBe(label);
+	});
+
+	it('supports explicit icon positioning for icon-and-text buttons', () => {
+		render(
+			<Button variant="primary" icon={<TestIcon />} iconPosition="right">
+				Pause
+			</Button>
+		);
+
+		const button = screen.getByRole('button', { name: 'Pause' });
+		const label = screen.getByText('Pause');
 		const icon = screen.getByTestId('left-icon');
 
 		expect(label.nextElementSibling).toBe(icon.parentElement);
