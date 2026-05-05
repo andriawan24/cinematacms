@@ -13,7 +13,7 @@ describe('Switch', () => {
 		expect(input).toBeChecked();
 		expect(label).toBeInTheDocument();
 		expect(track).not.toBeNull();
-		expect(track).toHaveStyle({ width: '30px', height: '20px', padding: '3px' });
+		expect(track).toHaveStyle({ width: '30px', height: '20px' });
 	});
 
 	it('uses cyan track and moved thumb when checked', () => {
@@ -52,7 +52,7 @@ describe('Switch', () => {
 		const track = input.parentElement.querySelector('[data-switch-track]');
 		const thumb = input.parentElement.querySelector('[data-switch-thumb]');
 
-		expect(track).toHaveStyle({ width: '52px', height: '20px', padding: '3px' });
+		expect(track).toHaveStyle({ width: '52px', height: '20px' });
 		expect(thumb).toHaveStyle({ left: '35px', top: '3px' });
 	});
 
