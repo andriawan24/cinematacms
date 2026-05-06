@@ -36,7 +36,7 @@ export function CheckboxButton({
 
 			<span
 				className={joinClasses(
-					'inline-flex shrink-0 items-center justify-center transition-colors duration-200',
+					'inline-flex shrink-0 items-center justify-center transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-cinemata-sunset-horizon-400p peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-cinemata-pacific-deep-900',
 					checked ? 'bg-cinemata-sunset-horizon-400p' : 'bg-cinemata-pacific-deep-900'
 				)}
 				style={{ width: 18, height: 18 }}
