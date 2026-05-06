@@ -5,13 +5,7 @@ import { Icon } from '../Icon';
 import { Tooltip } from './Tooltip';
 
 function TriggerButton() {
-	return (
-		<Button
-			variant="icon"
-			aria-label="Open tooltip"
-			icon={<Icon name="infoYellow" size={18} decorative />}
-		/>
-	);
+	return <Button variant="icon" aria-label="Open tooltip" icon={<Icon name="infoYellow" size={18} decorative />} />;
 }
 
 describe('Tooltip', () => {

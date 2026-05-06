@@ -150,19 +150,16 @@ export const EditorField = forwardRef(function EditorField(
 						PLACEHOLDER_VARIANT_CLASSES[variant]
 					)}
 				/>
-
-				{helperText ? (
-					<p
-						id={helperTextId}
-						className={joinClasses(
-							'body-body-12-regular mt-[7.5px] p-0 m-0',
-							HELPER_VARIANT_CLASSES[variant]
-						)}
-					>
-						{helperText}
-					</p>
-				) : null}
 			</div>
+
+			{helperText ? (
+				<p
+					id={helperTextId}
+					className={joinClasses('body-body-12-regular mt-[7.5px]', HELPER_VARIANT_CLASSES[variant])}
+				>
+					{helperText}
+				</p>
+			) : null}
 		</div>
 	);
 });
