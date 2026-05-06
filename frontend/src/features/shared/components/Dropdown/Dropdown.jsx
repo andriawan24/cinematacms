@@ -139,7 +139,15 @@ export function Dropdown({
 	}
 
 	return (
-		<div ref={rootRef} className={joinClasses('relative w-max max-w-full', className)}>
+		<div
+			ref={rootRef}
+			className={joinClasses('relative w-max max-w-full', className)}
+			onBlur={(event) => {
+				if (open && !rootRef.current?.contains(event.relatedTarget)) {
+					setOpen(false);
+				}
+			}}
+		>
 			<div
 				className={joinClasses(
 					'group w-full border-b px-0 py-[14px] transition-colors duration-200',
