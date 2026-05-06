@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Dropdown } from './Dropdown';
 
@@ -31,12 +31,12 @@ describe('Dropdown', () => {
 
 		const trigger = screen.getByRole('button', { name: 'Choose category' });
 		await user.click(trigger);
-		expect(screen.getByRole('listbox')).toBeInTheDocument();
-		await user.click(screen.getByRole('button', { name: 'Documentary' }));
+		expect(screen.getByRole('menu')).toBeInTheDocument();
+		await user.click(screen.getByRole('menuitemradio', { name: 'Documentary' }));
 
 		expect(onChange).toHaveBeenCalledWith('documentary', OPTIONS[1]);
 		expect(screen.getByRole('button', { name: 'Documentary' })).toHaveAttribute('aria-expanded', 'false');
-		expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 	});
 
 	it('supports controlled value', () => {
@@ -52,16 +52,36 @@ describe('Dropdown', () => {
 
 		const trigger = screen.getByRole('button', { name: 'Choose category' });
 		fireEvent.click(trigger);
-		expect(screen.getByRole('listbox')).toBeInTheDocument();
+		expect(screen.getByRole('menu')).toBeInTheDocument();
 
 		fireEvent.keyDown(document, { key: 'Escape' });
-		expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 
 		fireEvent.click(trigger);
-		expect(screen.getByRole('listbox')).toBeInTheDocument();
+		expect(screen.getByRole('menu')).toBeInTheDocument();
 
 		fireEvent.mouseDown(document.body);
-		expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+	});
+
+	it('uses menu semantics and keyboard navigation for options', async () => {
+		const user = userEvent.setup();
+
+		render(<Dropdown label="Category" placeholder="Choose category" options={OPTIONS} />);
+
+		const trigger = screen.getByRole('button', { name: 'Choose category' });
+
+		trigger.focus();
+		await user.keyboard('{ArrowDown}');
+
+		expect(screen.getByRole('menu')).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByRole('menuitemradio', { name: 'Feature film' })).toHaveFocus());
+
+		await user.keyboard('{ArrowDown}');
+		await waitFor(() => expect(screen.getByRole('menuitemradio', { name: 'Documentary' })).toHaveFocus());
+
+		await user.keyboard('{End}');
+		await waitFor(() => expect(screen.getByRole('menuitemradio', { name: 'Short form' })).toHaveFocus());
 	});
 
 	it('uses invalid and disabled semantics', () => {

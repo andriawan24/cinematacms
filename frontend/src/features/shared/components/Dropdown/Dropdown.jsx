@@ -67,6 +67,22 @@ function getSelectedOption(options, value) {
 	return options.find((option) => option.value === value) ?? null;
 }
 
+function clampIndex(index, total) {
+	if (!total) {
+		return -1;
+	}
+
+	if (index < 0) {
+		return total - 1;
+	}
+
+	if (index >= total) {
+		return 0;
+	}
+
+	return index;
+}
+
 export function Dropdown({
 	className = '',
 	defaultValue,
@@ -84,7 +100,7 @@ export function Dropdown({
 }) {
 	const generatedId = useId();
 	const buttonId = id ?? generatedId;
-	const listboxId = `${buttonId}-listbox`;
+	const menuId = `${buttonId}-menu`;
 	const helperTextId = helperText ? `${buttonId}-helper-text` : undefined;
 	const describedBy = [ariaDescribedBy, helperTextId].filter(Boolean).join(' ') || undefined;
 	const variant = disabled ? 'disabled' : invalid ? 'error' : 'default';
@@ -94,6 +110,8 @@ export function Dropdown({
 	const [isFocused, setIsFocused] = useState(false);
 	const [open, setOpen] = useState(false);
 	const rootRef = useRef(null);
+	const optionRefs = useRef([]);
+	const pendingFocusIndexRef = useRef(null);
 	const selectedValue = controlled ? value : internalValue;
 	const selectedOption = getSelectedOption(normalizedOptions, selectedValue);
 	const activeState = variant === 'default' && (isFocused || open);
@@ -129,6 +147,42 @@ export function Dropdown({
 		};
 	}, [open]);
 
+	useEffect(() => {
+		if (!open || pendingFocusIndexRef.current === null) {
+			return;
+		}
+
+		const nextIndex = clampIndex(pendingFocusIndexRef.current, normalizedOptions.length);
+		pendingFocusIndexRef.current = null;
+		optionRefs.current[nextIndex]?.focus();
+	}, [open, normalizedOptions.length]);
+
+	function focusOption(index) {
+		const nextIndex = clampIndex(index, normalizedOptions.length);
+
+		if (nextIndex === -1) {
+			return;
+		}
+
+		requestAnimationFrame(() => {
+			optionRefs.current[nextIndex]?.focus();
+		});
+	}
+
+	function openMenuWithFocus(index) {
+		if (disabled) {
+			return;
+		}
+
+		pendingFocusIndexRef.current = index;
+		setOpen(true);
+	}
+
+	function getSelectedIndex() {
+		const index = normalizedOptions.findIndex((option) => option.value === selectedValue);
+		return index === -1 ? 0 : index;
+	}
+
 	function handleSelect(option) {
 		if (!controlled) {
 			setInternalValue(option.value);
@@ -163,12 +217,37 @@ export function Dropdown({
 					aria-label={selectedOption?.label ?? placeholder}
 					aria-describedby={describedBy}
 					aria-expanded={open}
-					aria-haspopup="listbox"
-					aria-controls={listboxId}
+					aria-haspopup="menu"
+					aria-controls={menuId}
 					aria-invalid={ariaInvalid ?? (invalid || undefined)}
 					onClick={() => {
 						if (!disabled) {
 							setOpen((current) => !current);
+						}
+					}}
+					onKeyDown={(event) => {
+						if (disabled) {
+							return;
+						}
+
+						if (event.key === 'ArrowDown') {
+							event.preventDefault();
+							openMenuWithFocus(open ? getSelectedIndex() + 1 : getSelectedIndex());
+						}
+
+						if (event.key === 'ArrowUp') {
+							event.preventDefault();
+							openMenuWithFocus(open ? getSelectedIndex() - 1 : getSelectedIndex());
+						}
+
+						if (event.key === 'Home') {
+							event.preventDefault();
+							openMenuWithFocus(0);
+						}
+
+						if (event.key === 'End') {
+							event.preventDefault();
+							openMenuWithFocus(normalizedOptions.length - 1);
 						}
 					}}
 					onFocus={() => {
@@ -215,22 +294,56 @@ export function Dropdown({
 
 			{open && !disabled ? (
 				<ul
-					id={listboxId}
-					role="listbox"
+					id={menuId}
+					role="menu"
 					aria-labelledby={label ? buttonId : undefined}
 					className={joinClasses(
 						'absolute left-0 top-full z-20 mt-2 min-w-full list-none overflow-hidden rounded-(--radius-4) border p-0',
 						MENU_VARIANT_CLASSES[variant]
 					)}
 				>
-					{normalizedOptions.map((option) => {
+					{normalizedOptions.map((option, index) => {
 						const selected = option.value === selectedValue;
 
 						return (
-							<li key={option.value} role="option" aria-selected={selected}>
+							<li key={option.value} role="none">
 								<button
+									ref={(node) => {
+										optionRefs.current[index] = node;
+									}}
 									type="button"
+									role="menuitemradio"
+									aria-checked={selected}
 									onClick={() => handleSelect(option)}
+									onKeyDown={(event) => {
+										if (event.key === 'ArrowDown') {
+											event.preventDefault();
+											focusOption(index + 1);
+										}
+
+										if (event.key === 'ArrowUp') {
+											event.preventDefault();
+											focusOption(index - 1);
+										}
+
+										if (event.key === 'Home') {
+											event.preventDefault();
+											focusOption(0);
+										}
+
+										if (event.key === 'End') {
+											event.preventDefault();
+											focusOption(normalizedOptions.length - 1);
+										}
+
+										if (event.key === 'Escape') {
+											event.preventDefault();
+											setOpen(false);
+											requestAnimationFrame(() => {
+												rootRef.current?.querySelector('button')?.focus();
+											});
+										}
+									}}
 									className={joinClasses(
 										'body-body-16-regular block w-full px-4 py-3 text-left outline-none transition-colors duration-150 border-0',
 										SHELL_VARIANT_CLASSES[variant],

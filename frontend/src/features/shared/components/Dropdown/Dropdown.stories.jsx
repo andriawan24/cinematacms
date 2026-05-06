@@ -15,7 +15,7 @@ const meta = {
 		docs: {
 			description: {
 				component:
-					'Atomic text-only dropdown matching the TextField visual system. Uses Tailwind `dark:` overrides and opens a text-only option list with a shared `chevronDown` icon.',
+					'Atomic text-only dropdown matching the TextField visual system. Uses Tailwind `dark:` overrides and opens a text-only menu with a shared `chevronDown` icon.',
 			},
 		},
 	},
@@ -114,7 +114,7 @@ export const Default = {
 		const trigger = canvas.getByRole('button', { name: 'Choose category' });
 
 		await expect(trigger).toBeVisible();
-		await expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
+		await expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
 	},
 };
 
@@ -124,8 +124,8 @@ export const Open = {
 		const trigger = canvas.getByRole('button', { name: 'Choose category' });
 
 		await userEvent.click(trigger);
-		await expect(canvas.getByRole('listbox')).toBeVisible();
-		await expect(canvas.getByRole('option', { name: 'Documentary' })).toBeVisible();
+		await expect(canvas.getByRole('menu')).toBeVisible();
+		await expect(canvas.getByRole('menuitemradio', { name: 'Documentary' })).toBeVisible();
 	},
 };
 

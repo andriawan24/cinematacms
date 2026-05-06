@@ -22,8 +22,8 @@ export function ProgressBar({
 	trackClassName = '',
 	indicatorClassName = '',
 }) {
-	const safeValue = Number.isFinite(value) ? clamp(value, 0, Math.max(max, 0)) : 0;
 	const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
+	const safeValue = Number.isFinite(value) ? clamp(value, 0, safeMax) : 0;
 	const progressPercent = resolveProgressPercent(safeValue, safeMax);
 	const indicatorRadiusClass =
 		progressPercent >= 100

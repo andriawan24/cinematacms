@@ -51,4 +51,24 @@ describe('ProgressBar', () => {
 		expect(track).not.toBeNull();
 		expect(indicator).not.toBeNull();
 	});
+
+	it('normalizes invalid max values before clamping aria state', () => {
+		const { rerender } = render(<ProgressBar label="Normalized progress" value={45} max={Number.NaN} />);
+
+		let progressbar = screen.getByRole('progressbar', { name: 'Normalized progress' });
+		let indicator = progressbar.firstElementChild?.firstElementChild;
+
+		expect(progressbar).toHaveAttribute('aria-valuemax', '100');
+		expect(progressbar).toHaveAttribute('aria-valuenow', '45');
+		expect(indicator).toHaveStyle({ width: '45%' });
+
+		rerender(<ProgressBar label="Normalized progress" value={140} max={Number.POSITIVE_INFINITY} />);
+
+		progressbar = screen.getByRole('progressbar', { name: 'Normalized progress' });
+		indicator = progressbar.firstElementChild?.firstElementChild;
+
+		expect(progressbar).toHaveAttribute('aria-valuemax', '100');
+		expect(progressbar).toHaveAttribute('aria-valuenow', '100');
+		expect(indicator).toHaveStyle({ width: '100%' });
+	});
 });
