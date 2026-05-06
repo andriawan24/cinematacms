@@ -5,15 +5,19 @@ function joinClasses(...classes) {
 }
 
 export function RadioButton({
-	checked = false,
+	checked,
 	children,
 	className = '',
+	defaultChecked = false,
 	disabled = false,
 	name,
 	onChange,
+	readOnly = false,
 	value,
 	...props
 }) {
+	const isControlled = checked !== undefined;
+
 	return (
 		<label
 			className={joinClasses(
@@ -25,9 +29,11 @@ export function RadioButton({
 			<input
 				type="radio"
 				className="peer sr-only"
-				checked={checked}
+				checked={isControlled ? checked : undefined}
+				defaultChecked={!isControlled ? defaultChecked : undefined}
 				disabled={disabled}
 				name={name}
+				readOnly={readOnly || (isControlled && !onChange)}
 				value={value}
 				onChange={onChange}
 				{...props}
@@ -35,14 +41,13 @@ export function RadioButton({
 
 			<span
 				className={joinClasses(
-					'inline-flex shrink-0 items-center justify-center rounded-full transition-colors duration-200',
-					checked ? 'bg-cinemata-sunset-horizon-400p' : 'bg-cinemata-pacific-deep-900'
+					'inline-flex shrink-0 items-center justify-center rounded-full bg-cinemata-pacific-deep-900 transition-colors duration-200 peer-checked:bg-cinemata-sunset-horizon-400p'
 				)}
 				style={{ width: 18, height: 18, padding: 3 }}
 				aria-hidden="true"
 			>
 				<span
-					className="block rounded-full transition-transform duration-200 bg-cinemata-pacific-deep-900"
+					className="block rounded-full bg-cinemata-pacific-deep-900 transition-transform duration-200"
 					style={{ width: 8, height: 8 }}
 				/>
 			</span>
@@ -56,8 +61,10 @@ RadioButton.propTypes = {
 	checked: PropTypes.bool,
 	children: PropTypes.node,
 	className: PropTypes.string,
+	defaultChecked: PropTypes.bool,
 	disabled: PropTypes.bool,
 	name: PropTypes.string,
 	onChange: PropTypes.func,
+	readOnly: PropTypes.bool,
 	value: PropTypes.string,
 };

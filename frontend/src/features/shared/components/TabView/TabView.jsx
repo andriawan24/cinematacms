@@ -69,6 +69,19 @@ function clampTabsValue(tabs, nextValue) {
 	return tabs.find((tab) => !tab.disabled)?.value ?? tabs[0]?.value;
 }
 
+function findAdjacentTabValue(tabs, currentValue, step) {
+	const enabledTabs = tabs.filter((tab) => !tab.disabled);
+
+	if (!enabledTabs.length) {
+		return undefined;
+	}
+
+	const currentIndex = enabledTabs.findIndex((tab) => tab.value === currentValue);
+	const nextIndex = currentIndex === -1 ? 0 : (currentIndex + step + enabledTabs.length) % enabledTabs.length;
+
+	return enabledTabs[nextIndex]?.value;
+}
+
 function useTabViewContext(componentName) {
 	const context = useContext(TabViewContext);
 
@@ -134,6 +147,16 @@ function TabViewTrigger({ children, value, disabled = false, className = '' }) {
 			disabled={disabled}
 			onClick={() => selectValue(value)}
 			onKeyDown={(event) => {
+				if (event.key === 'ArrowRight') {
+					event.preventDefault();
+					selectAndFocus(findAdjacentTabValue(tabs, value, 1));
+				}
+
+				if (event.key === 'ArrowLeft') {
+					event.preventDefault();
+					selectAndFocus(findAdjacentTabValue(tabs, value, -1));
+				}
+
 				if (event.key === 'Home') {
 					event.preventDefault();
 					selectAndFocus(tabs.find((tab) => !tab.disabled)?.value);

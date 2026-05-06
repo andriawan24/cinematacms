@@ -85,4 +85,54 @@ describe('Dialog', () => {
 
 		expect(screen.queryByRole('dialog', { name: 'Escape dialog' })).toBeNull();
 	});
+
+	it('traps focus inside the dialog and restores focus to the trigger on close', async () => {
+		const user = userEvent.setup();
+		const { container } = render(
+			<div>
+				<button type="button">Outside action</button>
+				<Dialog>
+					<DialogTrigger>
+						<Button>OPEN DIALOG</Button>
+					</DialogTrigger>
+					<DialogContent aria-label="Focus dialog">
+						<div>
+							<button type="button">First action</button>
+							<button type="button">Second action</button>
+						</div>
+					</DialogContent>
+				</Dialog>
+			</div>
+		);
+
+		const trigger = screen.getByRole('button', { name: 'OPEN DIALOG' });
+		await user.click(trigger);
+
+		expect(screen.getByRole('button', { name: 'First action' })).toHaveFocus();
+
+		await user.tab();
+		expect(screen.getByRole('button', { name: 'Second action' })).toHaveFocus();
+
+		await user.tab();
+		expect(screen.getByRole('button', { name: 'First action' })).toHaveFocus();
+
+		await user.keyboard('{Escape}');
+		expect(trigger).toHaveFocus();
+		expect(container).not.toHaveAttribute('aria-hidden');
+		expect(container).not.toHaveAttribute('inert');
+	});
+
+	it('hides the background from assistive tech while the dialog is open', () => {
+		const { container } = render(
+			<div>
+				<button type="button">Outside action</button>
+				<Dialog defaultOpen>
+					<DialogContent aria-label="Modal dialog">Dialog body</DialogContent>
+				</Dialog>
+			</div>
+		);
+
+		expect(container).toHaveAttribute('aria-hidden', 'true');
+		expect(container).toHaveAttribute('inert');
+	});
 });

@@ -6,15 +6,19 @@ function joinClasses(...classes) {
 }
 
 export function CheckboxButton({
-	checked = false,
+	checked,
 	children,
 	className = '',
+	defaultChecked = false,
 	disabled = false,
 	name,
 	onChange,
+	readOnly = false,
 	value,
 	...props
 }) {
+	const isControlled = checked !== undefined;
+
 	return (
 		<label
 			className={joinClasses(
@@ -26,9 +30,11 @@ export function CheckboxButton({
 			<input
 				type="checkbox"
 				className="peer sr-only"
-				checked={checked}
+				checked={isControlled ? checked : undefined}
+				defaultChecked={!isControlled ? defaultChecked : undefined}
 				disabled={disabled}
 				name={name}
+				readOnly={readOnly || (isControlled && !onChange)}
 				value={value}
 				onChange={onChange}
 				{...props}
@@ -36,8 +42,7 @@ export function CheckboxButton({
 
 			<span
 				className={joinClasses(
-					'inline-flex shrink-0 items-center justify-center transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-cinemata-sunset-horizon-400p peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-cinemata-pacific-deep-900',
-					checked ? 'bg-cinemata-sunset-horizon-400p' : 'bg-cinemata-pacific-deep-900'
+					'inline-flex shrink-0 items-center justify-center bg-cinemata-pacific-deep-900 transition-colors duration-200 peer-checked:bg-cinemata-sunset-horizon-400p peer-focus-visible:ring-2 peer-focus-visible:ring-cinemata-sunset-horizon-400p peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-cinemata-pacific-deep-900'
 				)}
 				style={{ width: 18, height: 18 }}
 				aria-hidden="true"
@@ -62,8 +67,10 @@ CheckboxButton.propTypes = {
 	checked: PropTypes.bool,
 	children: PropTypes.node,
 	className: PropTypes.string,
+	defaultChecked: PropTypes.bool,
 	disabled: PropTypes.bool,
 	name: PropTypes.string,
 	onChange: PropTypes.func,
+	readOnly: PropTypes.bool,
 	value: PropTypes.string,
 };

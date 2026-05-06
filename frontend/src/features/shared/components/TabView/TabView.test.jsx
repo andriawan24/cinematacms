@@ -83,7 +83,7 @@ describe('TabView', () => {
 		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload many titles.');
 	});
 
-	it('does not change tabs when ArrowRight is pressed', async () => {
+	it('supports left and right arrow keyboard navigation with wraparound', async () => {
 		const user = userEvent.setup();
 
 		render(
@@ -97,10 +97,39 @@ describe('TabView', () => {
 		selectedTab.focus();
 
 		await user.keyboard('{ArrowRight}');
+		await waitFor(() => expect(screen.getByRole('tab', { name: 'Bulk Upload' })).toHaveFocus());
+		expect(screen.getByRole('tab', { name: 'Bulk Upload' })).toHaveAttribute('aria-selected', 'true');
+		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload many titles.');
 
+		await user.keyboard('{ArrowRight}');
+		await waitFor(() => expect(screen.getByRole('tab', { name: 'Single Film Upload' })).toHaveFocus());
 		expect(screen.getByRole('tab', { name: 'Single Film Upload' })).toHaveAttribute('aria-selected', 'true');
-		expect(screen.getByRole('tab', { name: 'Single Film Upload' })).toHaveFocus();
 		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload one title.');
+
+		await user.keyboard('{ArrowLeft}');
+		await waitFor(() => expect(screen.getByRole('tab', { name: 'Bulk Upload' })).toHaveFocus());
+		expect(screen.getByRole('tab', { name: 'Bulk Upload' })).toHaveAttribute('aria-selected', 'true');
+		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload many titles.');
+	});
+
+	it('skips disabled tabs during arrow navigation', async () => {
+		const user = userEvent.setup();
+
+		render(
+			<TabView defaultSelectedTab="single-film-upload" aria-label="Upload mode">
+				<TabContent title="Single Film Upload" content={<p>Upload one title.</p>} />
+				<TabContent title="Bulk Upload" content={<p>Upload many titles.</p>} disabled />
+				<TabContent title="Import Existing" content={<p>Import an existing catalog.</p>} />
+			</TabView>
+		);
+
+		const selectedTab = screen.getByRole('tab', { name: 'Single Film Upload' });
+		selectedTab.focus();
+
+		await user.keyboard('{ArrowRight}');
+		await waitFor(() => expect(screen.getByRole('tab', { name: 'Import Existing' })).toHaveFocus());
+		expect(screen.getByRole('tab', { name: 'Import Existing' })).toHaveAttribute('aria-selected', 'true');
+		expect(screen.getByRole('tabpanel')).toHaveTextContent('Import an existing catalog.');
 	});
 
 	it('supports Home and End keyboard navigation across generated tabs', async () => {
