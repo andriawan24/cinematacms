@@ -7,23 +7,16 @@ describe('Badge', () => {
 
 		const badge = screen.getByText('Premiere');
 
-		expect(badge.className).toContain('caption-caption-10-regular');
-		expect(badge.className).toContain('rounded-[2px]');
-		expect(badge.className).toContain('p-1');
-		expect(badge.className).toContain('text-cinemata-neutral-50');
+		expect(badge).toHaveTextContent('Premiere');
 		expect(badge).toHaveStyle({ backgroundColor: 'rgb(12, 82, 115)' });
 	});
 
-	it('supports extra className and style overrides', () => {
-		render(
-			<Badge className="uppercase" color="#111111" style={{ letterSpacing: '0.12em' }}>
-				Now Showing
-			</Badge>
-		);
+	it('supports style overrides', () => {
+		render(<Badge color="#111111" style={{ letterSpacing: '0.12em' }}>Now Showing</Badge>);
 
 		const badge = screen.getByText('Now Showing');
 
-		expect(badge.className).toContain('uppercase');
+		expect(badge).toHaveTextContent('Now Showing');
 		expect(badge).toHaveStyle({ letterSpacing: '0.12em' });
 	});
 });

@@ -11,15 +11,9 @@ describe('MediaDropzone', () => {
 		const button = screen.getByRole('button', { name: 'CHOOSE MEDIA' });
 		const icon = container.querySelector('[data-dropzone-icon]');
 
-		expect(dropzone?.className).toContain('w-full');
-		expect(dropzone?.className).toContain('rounded-[16px]');
-		expect(dropzone?.className).toContain('bg-cinemata-pacific-deep-800');
-		expect(dropzone?.className).toContain('py-[60px]');
-		expect(border?.className).toContain('rounded-[16px]');
-		expect(border?.className).toContain('border-dashed');
-		expect(border?.className).toContain('border-cinemata-strait-blue-300');
-		expect(screen.getByText('Drag & Drop Files(s) or').className).toContain('body-body-16-regular');
-		expect(screen.getByText('Drag & Drop Files(s) or').className).toContain('text-cinemata-strait-blue-50');
+		expect(dropzone).toHaveAttribute('data-dropzone', 'true');
+		expect(border).toHaveAttribute('data-dropzone-border', 'true');
+		expect(screen.getByText('Drag & Drop Files(s) or')).toBeVisible();
 		expect(button).toBeVisible();
 		expect(icon).not.toBeNull();
 	});

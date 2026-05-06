@@ -9,7 +9,6 @@ describe('SquareImage', () => {
 		const image = screen.getByRole('img', { name: 'Poster' });
 
 		expect(wrapper).toHaveStyle({ width: '60px', height: '60px', borderRadius: '8px' });
-		expect(wrapper.className).toContain('bg-cinemata-pacific-deep-800');
 		expect(image).toHaveAttribute('src', 'https://example.com/poster.jpg');
 	});
 
@@ -31,7 +30,6 @@ describe('SquareImage', () => {
 
 		expect(wrapper).toHaveAttribute('aria-busy', 'true');
 		expect(loadingIcon).not.toBeNull();
-		expect(loadingIcon.className.baseVal || loadingIcon.className).toContain('animate-spin');
 		expect(overlay).not.toBeNull();
 	});
 

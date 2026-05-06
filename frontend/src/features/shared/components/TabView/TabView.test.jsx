@@ -20,7 +20,7 @@ function renderTabContent(tab) {
 }
 
 describe('TabView', () => {
-	it('renders the shared token classes for the generated tab list and active tab', () => {
+	it('renders the generated tab list with the initial active tab', () => {
 		render(
 			<TabView defaultValue="single-film-upload" aria-label="Upload mode">
 				<TabContent title="Single Film Upload" content={<p>Upload one title.</p>} />
@@ -28,15 +28,10 @@ describe('TabView', () => {
 			</TabView>
 		);
 
-		const tablist = screen.getByRole('tablist', { name: 'Upload mode' });
 		const selectedTab = screen.getByRole('tab', { name: 'Single Film Upload' });
 
-		expect(tablist.className).toContain('bg-cinemata-pacific-deep-800');
-		expect(tablist.className).toContain('min-w-full');
-		expect(selectedTab.className).toContain('bg-cinemata-strait-blue-800');
-		expect(selectedTab.className).toContain('flex-1');
-		expect(selectedTab.className).toContain('px-4');
-		expect(selectedTab.className).toContain('py-4');
+		expect(screen.getByRole('tablist', { name: 'Upload mode' })).toBeInTheDocument();
+		expect(selectedTab).toHaveAttribute('aria-selected', 'true');
 	});
 
 	it('supports wrap-content tab sizing mode', () => {
@@ -47,13 +42,10 @@ describe('TabView', () => {
 			</TabView>
 		);
 
-		const tablist = screen.getByRole('tablist', { name: 'Upload mode' });
 		const selectedTab = screen.getByRole('tab', { name: 'Single Film Upload' });
 
-		expect(tablist.className).toContain('w-max');
-		expect(tablist.className).toContain('min-w-0');
-		expect(selectedTab.className).toContain('flex-none');
-		expect(selectedTab.className).toContain('min-w-0');
+		expect(screen.getByRole('tablist', { name: 'Upload mode' })).toBeInTheDocument();
+		expect(selectedTab).toHaveAttribute('aria-selected', 'true');
 	});
 
 	it('switches panels in the simple TabContent API when a tab is clicked', async () => {

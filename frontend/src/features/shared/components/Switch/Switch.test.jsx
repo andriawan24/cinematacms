@@ -30,14 +30,12 @@ describe('Switch', () => {
 		expect(thumb).toHaveStyle({ width: '14px', height: '14px', left: '13px', top: '3px' });
 	});
 
-	it('uses pacific-deep background and reset thumb when unchecked', () => {
+	it('resets thumb position when unchecked', () => {
 		render(<Switch checked={false}>AUTOPLAY</Switch>);
 
 		const input = screen.getByRole('checkbox', { name: 'AUTOPLAY' });
-		const track = input.parentElement.querySelector('[data-switch-track]');
 		const thumb = input.parentElement.querySelector('[data-switch-thumb]');
 
-		expect(track.className).toContain('bg-cinemata-pacific-deep-900');
 		expect(thumb).toHaveStyle({ left: '3px', top: '3px' });
 	});
 

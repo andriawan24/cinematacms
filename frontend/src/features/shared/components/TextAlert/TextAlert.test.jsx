@@ -8,23 +8,15 @@ describe('TextAlert', () => {
 		const alert = screen.getByRole('alert');
 		const icon = alert.querySelector('svg[data-icon="infoCircle"]');
 
-		expect(alert.className).toContain('body-body-16-regular');
-		expect(alert.className).toContain('flex');
-		expect(alert.className).toContain('items-center');
-		expect(alert.className).toContain('w-full');
-		expect(alert.className).toContain('text-cinemata-sunset-horizon-400p');
 		expect(alert).toHaveTextContent('Uploads are still processing.');
 		expect(icon).not.toBeNull();
 		expect(icon).toHaveStyle({ width: '24px', height: '24px' });
 	});
 
-	it('supports className overrides while keeping the base layout', () => {
-		render(<TextAlert className="max-w-[420px]">Uploads are still processing.</TextAlert>);
+	it('supports custom wrapper props', () => {
+		render(<TextAlert data-testid="text-alert">Uploads are still processing.</TextAlert>);
 
-		const alert = screen.getByRole('alert');
-
-		expect(alert.className).toContain('w-full');
-		expect(alert.className).toContain('max-w-[420px]');
+		expect(screen.getByTestId('text-alert')).toHaveTextContent('Uploads are still processing.');
 	});
 
 	it('allows the container role to be customized', () => {

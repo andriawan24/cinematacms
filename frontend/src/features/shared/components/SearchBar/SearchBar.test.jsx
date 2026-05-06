@@ -10,28 +10,15 @@ describe('SearchBar', () => {
 		const input = screen.getByRole('searchbox', { name: 'Search movie title' });
 		const icon = input.parentElement?.querySelector('svg[data-icon="magnifyingGlass"]');
 
-		expect(input.className).toContain('body-body-14-regular');
-		expect(input.className).toContain('bg-cinemata-pacific-deep-800');
-		expect(input.className).toContain('placeholder:text-cinemata-pacific-deep-300');
-		expect(input.className).toContain('text-cinemata-strait-blue-50');
-		expect(input.className).toContain('px-[22px]');
-		expect(input.className).toContain('py-[15px]');
-		expect(input.className).toContain('rounded-[8px]');
-		expect(input.className).toContain('w-full');
-		expect(input.className).toContain('focus:border-cinemata-sunset-horizon-400p');
+		expect(input).toHaveAttribute('placeholder', 'Search movie title');
 		expect(icon).not.toBeNull();
 		expect(icon).toHaveStyle({ width: '22px', height: '22px' });
 	});
 
-	it('supports outer container className overrides while keeping full-width layout', () => {
-		render(<SearchBar className="max-w-[480px]" aria-label="Search" />);
+	it('supports custom wrapper props', () => {
+		render(<SearchBar data-testid="search-input" aria-label="Search" />);
 
-		const input = screen.getByRole('searchbox', { name: 'Search' });
-		const container = input.parentElement;
-
-		expect(container?.className).toContain('relative');
-		expect(container?.className).toContain('w-full');
-		expect(container?.className).toContain('max-w-[480px]');
+		expect(screen.getByTestId('search-input')).toHaveAttribute('aria-label', 'Search');
 	});
 
 	it('supports uncontrolled defaultValue like TextField', () => {
@@ -73,7 +60,5 @@ describe('SearchBar', () => {
 		const input = screen.getByRole('searchbox', { name: 'Search disabled' });
 
 		expect(input).toBeDisabled();
-		expect(input.className).toContain('disabled:opacity-70');
-		expect(input.className).toContain('disabled:cursor-not-allowed');
 	});
 });

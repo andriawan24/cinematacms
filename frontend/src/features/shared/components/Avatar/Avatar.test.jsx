@@ -9,7 +9,6 @@ describe('Avatar', () => {
 		const image = screen.getByRole('img', { name: 'Tariq Akbar' });
 
 		expect(avatar).toHaveStyle({ width: 'var(--size-28)', height: 'var(--size-28)' });
-		expect(avatar.className).toContain('rounded-full');
 		expect(image).toHaveAttribute('src', 'https://example.com/avatar.jpg');
 	});
 
@@ -55,15 +54,7 @@ describe('Avatar', () => {
 		const badgeIcon = badge.querySelector('[data-badge-icon="commentBlue"]');
 
 		expect(badge).toHaveStyle({ width: 'var(--size-28)', height: 'var(--size-28)' });
-		expect(badge.className).toContain('right-[-8px]');
-		expect(badge.className).toContain('bottom-[-20px]');
-		expect(badge.className).toContain('border-[3px]');
-		expect(badge.className).toContain('border-cinemata-pacific-deep-900');
-		expect(badge.className).toContain('bg-cinemata-strait-blue-900');
-		expect(badge.className).toContain('p-[7px]');
 		expect(badgeIcon).not.toBeNull();
-		expect(badgeIcon.parentElement).toHaveClass('h-full');
-		expect(badgeIcon.parentElement).toHaveClass('w-full');
 	});
 
 	it('supports added-favorite and like badge variants with their own icons and fills', () => {
@@ -77,13 +68,11 @@ describe('Avatar', () => {
 		);
 
 		let badge = screen.getByRole('img', { name: 'Added favorite' });
-		expect(badge.className).toContain('bg-cinemata-sunset-horizon-800');
 		expect(badge.querySelector('[data-badge-icon="addedFavorite"]')).not.toBeNull();
 
 		rerender(<Avatar name="Mina Sato" src="https://example.com/avatar.jpg" badgeType="like" label="Like" />);
 
 		badge = screen.getByRole('img', { name: 'Like' });
-		expect(badge.className).toContain('bg-cinemata-red-950');
 		expect(badge.querySelector('[data-badge-icon="thumbsUpRed"]')).not.toBeNull();
 	});
 

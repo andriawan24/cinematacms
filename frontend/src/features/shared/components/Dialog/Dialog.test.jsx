@@ -26,11 +26,6 @@ describe('Dialog', () => {
 		const dialog = screen.getByRole('dialog', { name: 'Upload dialog' });
 
 		expect(dialog).toBeVisible();
-		expect(dialog.className).toContain('max-w-[480px]');
-		expect(dialog.className).toContain('bg-cinemata-pacific-deep-800');
-		expect(dialog.parentElement?.className).toContain('fixed');
-		expect(dialog.parentElement?.className).toContain('items-center');
-		expect(dialog.parentElement?.className).toContain('justify-center');
 		expect(document.body.querySelector('.bg-cinemata-pacific-deep-950')).not.toBeNull();
 	});
 

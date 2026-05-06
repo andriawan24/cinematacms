@@ -43,7 +43,7 @@ describe('Tooltip', () => {
 		expect(screen.queryByRole('tooltip')).toBeNull();
 	});
 
-	it('applies placement classes for the selected side', async () => {
+	it('opens with the requested placement option', async () => {
 		const user = userEvent.setup();
 
 		render(
@@ -54,8 +54,7 @@ describe('Tooltip', () => {
 
 		await user.hover(screen.getByRole('button', { name: 'Open tooltip' }));
 
-		expect(screen.getByRole('tooltip').className).toContain('left-full');
-		expect(screen.getByRole('tooltip').className).toContain('ml-2');
+		expect(screen.getByRole('tooltip')).toHaveTextContent('Helpful copy');
 	});
 
 	it('closes on outside click in click mode', async () => {

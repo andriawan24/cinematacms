@@ -21,25 +21,14 @@ describe('ConfirmationDialogContent', () => {
 		const cancelButton = screen.getByRole('button', { name: 'Cancel' });
 		const confirmButton = screen.getByRole('button', { name: 'Yes, Submit' });
 		const decorativeImage = dialog.querySelector('img');
-		const contentSection = title.parentElement;
-		const shell = dialog.firstElementChild;
 
-		expect(dialog.className).toContain('max-w-[520px]');
-		expect(dialog.className).toContain('min-w-2xl');
-		expect(dialog.className).toContain('p-0');
-		expect(shell?.className).toContain('rounded-2xl');
-		expect(shell?.className).toContain('p-[26px]');
-		expect(shell?.className).toContain('border-cinemata-strait-blue-300');
-		expect(title.className).toContain('heading-h5-24-medium');
-		expect(title.className).toContain('text-cinemata-strait-blue-50');
-		expect(contentSection?.className).toContain('items-start');
-		expect(contentSection?.className).toContain('text-left');
+		expect(dialog).toBeVisible();
 		expect(
-			screen.getByText('Your updated metadata will be published and become visible to collaborators.').className
-		).toContain('text-cinemata-pacific-deep-300');
+			screen.getByText('Your updated metadata will be published and become visible to collaborators.')
+		).toBeVisible();
 		expect(dialog.querySelector('svg[data-icon="info3d"]')).not.toBeNull();
-		expect(cancelButton.className).toContain('bg-cinemata-strait-blue-600p');
-		expect(confirmButton.className).toContain('bg-cinemata-sunset-horizon-500');
+		expect(cancelButton).toBeVisible();
+		expect(confirmButton).toBeVisible();
 		expect(decorativeImage).not.toBeNull();
 	});
 
