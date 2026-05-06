@@ -4,12 +4,6 @@ function joinClasses(...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
-function callHandler(handler, event) {
-	if (typeof handler === 'function') {
-		handler(event);
-	}
-}
-
 const PLACEMENT_CLASSES = {
 	top: 'bottom-full left-1/2 mb-2 -translate-x-1/2',
 	right: 'left-full top-1/2 ml-2 -translate-y-1/2',
@@ -80,30 +74,14 @@ export function Tooltip({
 			data-tooltip
 			onMouseEnter={trigger === 'hover' ? () => setOpen(true) : undefined}
 			onMouseLeave={trigger === 'hover' ? () => setOpen(false) : undefined}
-			onFocus={
-				trigger === 'hover'
-					? (event) => {
-							callHandler(children.props.onFocus, event);
-							setOpen(true);
-						}
-					: undefined
-			}
-			onBlur={
-				trigger === 'hover'
-					? (event) => {
-							callHandler(children.props.onBlur, event);
-							setOpen(false);
-						}
-					: undefined
-			}
+			onFocus={trigger === 'hover' ? () => setOpen(true) : undefined}
+			onBlur={trigger === 'hover' ? () => setOpen(false) : undefined}
 		>
 			<span
 				className="inline-flex"
 				onClick={
 					trigger === 'click'
 						? (event) => {
-								callHandler(children.props.onClick, event);
-
 								if (!event.defaultPrevented) {
 									setOpen(!isOpen);
 								}

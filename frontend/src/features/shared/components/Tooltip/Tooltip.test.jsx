@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
 import { Tooltip } from './Tooltip';
@@ -74,5 +75,26 @@ describe('Tooltip', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Outside' }));
 		expect(screen.queryByRole('tooltip')).toBeNull();
+	});
+
+	it('invokes the child click handler only once in click mode', async () => {
+		const user = userEvent.setup();
+		const handleClick = vi.fn();
+
+		render(
+			<Tooltip content="Helpful copy" trigger="click">
+				<Button
+					variant="icon"
+					aria-label="Open tooltip"
+					icon={<Icon name="infoYellow" size={18} decorative />}
+					onClick={handleClick}
+				/>
+			</Tooltip>
+		);
+
+		await user.click(screen.getByRole('button', { name: 'Open tooltip' }));
+
+		expect(handleClick).toHaveBeenCalledTimes(1);
+		expect(screen.getByRole('tooltip')).toBeInTheDocument();
 	});
 });
