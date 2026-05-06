@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 const SHELL_VARIANT_CLASSES = {
 	default:
@@ -51,26 +51,24 @@ function hasTextValue(value) {
 	return String(value).length > 0;
 }
 
-export const TextField = forwardRef(function TextField(
-	{
-		className = '',
-		defaultValue,
-		disabled = false,
-		helperText = '',
-		id,
-		invalid = false,
-		label = '',
-		onChange,
-		onBlur,
-		onFocus,
-		type = 'text',
-		value,
-		'aria-describedby': ariaDescribedBy,
-		'aria-invalid': ariaInvalid,
-		...props
-	},
-	ref
-) {
+export function TextField({
+	className = '',
+	defaultValue,
+	disabled = false,
+	helperText = '',
+	id,
+	invalid = false,
+	label = '',
+	onChange,
+	onBlur,
+	onFocus,
+	type = 'text',
+	value,
+	'aria-describedby': ariaDescribedBy,
+	'aria-invalid': ariaInvalid,
+	ref,
+	...props
+}) {
 	const generatedId = useId();
 	const inputId = id ?? generatedId;
 	const variant = disabled ? 'disabled' : invalid ? 'error' : 'default';
@@ -149,4 +147,4 @@ export const TextField = forwardRef(function TextField(
 			) : null}
 		</div>
 	);
-});
+}

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from '../Button';
-import { Dialog, DialogTrigger } from '../Dialog';
+import { Dialog, DialogClose, DialogTrigger } from '../Dialog';
 import { ConfirmationDialogContent } from './ConfirmationDialogContent';
 
 describe('ConfirmationDialogContent', () => {
@@ -12,6 +12,20 @@ describe('ConfirmationDialogContent', () => {
 					aria-label="Submit confirmation"
 					title="Submit changes?"
 					subtitle="Your updated metadata will be published and become visible to collaborators."
+					actions={
+						<>
+							<DialogClose>
+								<Button type="button" variant="primary">
+									Cancel
+								</Button>
+							</DialogClose>
+							<DialogClose>
+								<Button type="button" variant="secondary">
+									Yes, Submit
+								</Button>
+							</DialogClose>
+						</>
+					}
 				/>
 			</Dialog>
 		);
@@ -32,23 +46,48 @@ describe('ConfirmationDialogContent', () => {
 		expect(decorativeImage).not.toBeNull();
 	});
 
-	it('closes by default when cancel is clicked and still calls the cancel handler', async () => {
+	it('renders custom body content above the action row', () => {
+		render(
+			<Dialog defaultOpen>
+				<ConfirmationDialogContent
+					aria-label="Submit confirmation"
+					actions={
+						<DialogClose>
+							<Button type="button">Dismiss</Button>
+						</DialogClose>
+					}
+				>
+					<div>Additional warning details</div>
+				</ConfirmationDialogContent>
+			</Dialog>
+		);
+
+		expect(screen.getByText('Additional warning details')).toBeVisible();
+		expect(screen.getByRole('button', { name: 'Dismiss' })).toBeVisible();
+	});
+
+	it('closes when a caller wraps an action in DialogClose', async () => {
 		const user = userEvent.setup();
-		const handleCancel = vi.fn();
 
 		render(
 			<Dialog defaultOpen>
-				<ConfirmationDialogContent aria-label="Submit confirmation" onCancel={handleCancel} />
+				<ConfirmationDialogContent
+					aria-label="Submit confirmation"
+					actions={
+						<DialogClose>
+							<Button type="button">Cancel</Button>
+						</DialogClose>
+					}
+				/>
 			</Dialog>
 		);
 
 		await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
-		expect(handleCancel).toHaveBeenCalledTimes(1);
 		expect(screen.queryByRole('dialog', { name: 'Submit confirmation' })).toBeNull();
 	});
 
-	it('can keep the dialog open after confirm when closeOnConfirm is disabled', async () => {
+	it('keeps the dialog open when a custom action is not wrapped in DialogClose', async () => {
 		const user = userEvent.setup();
 		const handleConfirm = vi.fn();
 
@@ -56,8 +95,11 @@ describe('ConfirmationDialogContent', () => {
 			<Dialog defaultOpen>
 				<ConfirmationDialogContent
 					aria-label="Submit confirmation"
-					closeOnConfirm={false}
-					onConfirm={handleConfirm}
+					actions={
+						<Button type="button" onClick={handleConfirm}>
+							Yes, Submit
+						</Button>
+					}
 				/>
 			</Dialog>
 		);

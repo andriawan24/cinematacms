@@ -8,15 +8,16 @@ const meta = {
 	tags: ['autodocs'],
 	args: {
 		children: 'AUTOPLAY',
-		checked: true,
-		width: 30,
-		indicatorSize: 14,
-		padding: 3,
+		defaultChecked: true,
 	},
 	argTypes: {
 		checked: {
 			control: 'boolean',
-			description: 'Whether switch is active.',
+			description: 'Controlled checked state. Use with `onChange` or `readOnly`.',
+		},
+		defaultChecked: {
+			control: 'boolean',
+			description: 'Initial uncontrolled checked state.',
 		},
 		disabled: {
 			control: 'boolean',
@@ -26,32 +27,29 @@ const meta = {
 			control: 'text',
 			description: 'Label text shown on left side of switch.',
 		},
-		indicatorSize: {
-			control: 'number',
-			description: 'Thumb diameter in pixels.',
+		className: {
+			control: 'text',
+			description:
+				'Optional extra classes for the switch wrapper. Use CSS variables here to customize sizing, for example `[--switch-width:52px] [--switch-thumb-size:18px] [--switch-padding:4px]`.',
 		},
 		name: {
 			control: 'text',
 			description: 'Name attribute for underlying checkbox input.',
 		},
-		padding: {
-			control: 'number',
-			description: 'Inner track padding in pixels.',
+		readOnly: {
+			control: 'boolean',
+			description: 'Keeps a controlled switch read-only without requiring an `onChange` handler.',
 		},
 		value: {
 			control: 'text',
 			description: 'Value attribute for underlying checkbox input.',
-		},
-		width: {
-			control: 'number',
-			description: 'Track width in pixels. Clamped to component minimum.',
 		},
 	},
 	parameters: {
 		docs: {
 			description: {
 				component:
-					'A right-aligned switch control with grey/99 thumb and cyan/80 active track, based on the provided autoplay reference. Size is configurable through width, thumb size, and padding.',
+					'A right-aligned switch control with grey/99 thumb and cyan/80 active track, based on the provided autoplay reference. Supports uncontrolled usage through `defaultChecked`, or controlled usage through `checked` and `onChange`. Size customization happens through CSS variables on `className`, not dedicated width or thumb-size props.',
 			},
 		},
 	},
@@ -77,7 +75,7 @@ export const On = {
 
 export const Off = {
 	args: {
-		checked: false,
+		defaultChecked: false,
 	},
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -95,7 +93,7 @@ export const Disabled = {
 
 export const Interactive = {
 	render: function InteractiveSwitch(args) {
-		const [checked, setChecked] = useState(args.checked);
+		const [checked, setChecked] = useState(args.checked ?? args.defaultChecked ?? false);
 
 		return <Switch {...args} checked={checked} onChange={(event) => setChecked(event.target.checked)} />;
 	},
@@ -113,8 +111,12 @@ export const Interactive = {
 
 export const Wider = {
 	args: {
-		width: 52,
-		indicatorSize: 14,
-		padding: 3,
+		className: '[--switch-width:52px]',
+	},
+};
+
+export const CustomSizing = {
+	args: {
+		className: '[--switch-width:56px] [--switch-thumb-size:18px] [--switch-padding:4px]',
 	},
 };

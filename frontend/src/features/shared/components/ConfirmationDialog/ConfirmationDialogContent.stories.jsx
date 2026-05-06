@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { expect, userEvent, within } from 'storybook/test';
 import { Button } from '../Button';
-import { Dialog, DialogTrigger } from '../Dialog';
+import { Dialog, DialogClose, DialogTrigger } from '../Dialog';
 import { ConfirmationDialogContent } from './ConfirmationDialogContent';
 
 const meta = {
@@ -12,7 +12,7 @@ const meta = {
 		docs: {
 			description: {
 				component:
-					'Standardized confirmation dialog content built on top of the shared `Dialog` base. It keeps the layout, typography, decorative corner image, and action row consistent while allowing the title, subtitle, top icon, and button copy to vary.',
+					'Standardized confirmation dialog content built on top of the shared `Dialog` base. It keeps the layout, typography, and decorative corner image consistent while letting callers compose their own actions and decide which buttons should close the dialog.',
 			},
 		},
 	},
@@ -41,50 +41,19 @@ const meta = {
 				defaultValue: { summary: "'info3d'" },
 			},
 		},
-		cancelText: {
-			control: 'text',
-			description: 'Label used for the left cancel action.',
+		actions: {
+			control: false,
+			description:
+				'Optional right-aligned action row. Compose your own buttons here and wrap them with `DialogClose` only when that action should dismiss the dialog.',
 			table: {
-				type: { summary: 'string' },
-				defaultValue: { summary: "'Cancel'" },
+				type: { summary: 'ReactNode' },
 			},
 		},
-		confirmText: {
-			control: 'text',
-			description: 'Label used for the right confirmation action.',
+		children: {
+			control: false,
+			description: 'Optional custom content inserted between the subtitle and the action row.',
 			table: {
-				type: { summary: 'string' },
-				defaultValue: { summary: "'Yes, Submit'" },
-			},
-		},
-		closeOnCancel: {
-			control: 'boolean',
-			description: 'Closes the dialog automatically when the cancel button is clicked.',
-			table: {
-				type: { summary: 'boolean' },
-				defaultValue: { summary: 'true' },
-			},
-		},
-		closeOnConfirm: {
-			control: 'boolean',
-			description: 'Closes the dialog automatically when the confirmation button is clicked.',
-			table: {
-				type: { summary: 'boolean' },
-				defaultValue: { summary: 'true' },
-			},
-		},
-		onCancel: {
-			action: 'cancelled',
-			description: 'Called when the cancel button is clicked.',
-			table: {
-				type: { summary: '() => void' },
-			},
-		},
-		onConfirm: {
-			action: 'confirmed',
-			description: 'Called when the confirmation button is clicked.',
-			table: {
-				type: { summary: '() => void' },
+				type: { summary: 'ReactNode' },
 			},
 		},
 	},
@@ -92,10 +61,6 @@ const meta = {
 		title: 'Submit changes?',
 		subtitle:
 			'As a regular user, your video needs to be reviewed by an admin before being published. You will get an email notification after the review.',
-		cancelText: 'Cancel',
-		confirmText: 'Yes, Submit',
-		closeOnCancel: true,
-		closeOnConfirm: true,
 	},
 };
 
@@ -109,7 +74,24 @@ export const Default = {
 					<Button>OPEN CONFIRMATION</Button>
 				</DialogTrigger>
 
-				<ConfirmationDialogContent {...args} aria-label="Submit confirmation" />
+				<ConfirmationDialogContent
+					{...args}
+					aria-label="Submit confirmation"
+					actions={
+						<>
+							<DialogClose>
+								<Button type="button" variant="primary">
+									Cancel
+								</Button>
+							</DialogClose>
+							<DialogClose>
+								<Button type="button" variant="secondary">
+									Yes, Submit
+								</Button>
+							</DialogClose>
+						</>
+					}
+				/>
 			</Dialog>
 		</div>
 	),
@@ -127,7 +109,24 @@ export const Default = {
 export const OpenPreview = {
 	render: (args) => (
 		<Dialog defaultOpen>
-			<ConfirmationDialogContent {...args} aria-label="Submit confirmation" />
+			<ConfirmationDialogContent
+				{...args}
+				aria-label="Submit confirmation"
+				actions={
+					<>
+						<DialogClose>
+							<Button type="button" variant="primary">
+								Cancel
+							</Button>
+						</DialogClose>
+						<DialogClose>
+							<Button type="button" variant="secondary">
+								Yes, Submit
+							</Button>
+						</DialogClose>
+					</>
+				}
+			/>
 		</Dialog>
 	),
 };
@@ -146,12 +145,30 @@ export const Controlled = {
 					<ConfirmationDialogContent
 						{...args}
 						aria-label="Controlled confirmation"
-						onCancel={() => {
-							args.onCancel?.();
-						}}
-						onConfirm={() => {
-							args.onConfirm?.();
-						}}
+						actions={
+							<>
+								<Button
+									type="button"
+									variant="primary"
+									onClick={() => {
+										args.onCancel?.();
+										setOpen(false);
+									}}
+								>
+									Cancel
+								</Button>
+								<Button
+									type="button"
+									variant="secondary"
+									onClick={() => {
+										args.onConfirm?.();
+										setOpen(false);
+									}}
+								>
+									Yes, Submit
+								</Button>
+							</>
+						}
 					/>
 				</Dialog>
 			</div>

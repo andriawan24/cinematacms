@@ -1,24 +1,21 @@
-import { forwardRef } from 'react';
 import { Icon } from '../Icon';
 
 function joinClasses(...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
-export const SearchBar = forwardRef(function SearchBar(
-	{
-		className = '',
-		defaultValue,
-		value,
-		onChange,
-		iconName = 'magnifyingGlass',
-		placeholder = 'Search',
-		disabled = false,
-		'aria-label': ariaLabel = 'Search',
-		...props
-	},
-	ref
-) {
+export function SearchBar({
+	className = '',
+	defaultValue,
+	value,
+	onChange,
+	iconName = 'magnifyingGlass',
+	placeholder = 'Search',
+	disabled = false,
+	'aria-label': ariaLabel = 'Search',
+	ref,
+	...props
+}) {
 	return (
 		<div className={joinClasses('relative w-full max-w-full', className)}>
 			<input
@@ -42,4 +39,4 @@ export const SearchBar = forwardRef(function SearchBar(
 			</span>
 		</div>
 	);
-});
+}

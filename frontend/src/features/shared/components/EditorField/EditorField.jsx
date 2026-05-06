@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 const SHELL_VARIANT_CLASSES = {
 	default:
@@ -61,26 +61,24 @@ function getMinRows(rows) {
 	return Math.max(5, parsedRows);
 }
 
-export const EditorField = forwardRef(function EditorField(
-	{
-		className = '',
-		defaultValue,
-		disabled = false,
-		helperText = '',
-		id,
-		invalid = false,
-		label = '',
-		onBlur,
-		onChange,
-		onFocus,
-		rows = 5,
-		value,
-		'aria-describedby': ariaDescribedBy,
-		'aria-invalid': ariaInvalid,
-		...props
-	},
-	ref
-) {
+export function EditorField({
+	className = '',
+	defaultValue,
+	disabled = false,
+	helperText = '',
+	id,
+	invalid = false,
+	label = '',
+	onBlur,
+	onChange,
+	onFocus,
+	rows = 5,
+	value,
+	'aria-describedby': ariaDescribedBy,
+	'aria-invalid': ariaInvalid,
+	ref,
+	...props
+}) {
 	const generatedId = useId();
 	const textareaId = id ?? generatedId;
 	const variant = disabled ? 'disabled' : invalid ? 'error' : 'default';
@@ -162,4 +160,4 @@ export const EditorField = forwardRef(function EditorField(
 			) : null}
 		</div>
 	);
-});
+}

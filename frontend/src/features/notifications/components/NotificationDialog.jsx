@@ -1,24 +1,22 @@
-import { Children, forwardRef } from 'react';
+import { Children } from 'react';
 
 function joinClasses(...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
-export const NotificationDialog = forwardRef(function NotificationDialog(
-	{
-		children,
-		className = '',
-		emptyMessage = 'No notifications',
-		isLoading = false,
-		isMarkAllAsReadPending = false,
-		loadingMessage = 'Loading…',
-		onMarkAllAsRead,
-		seeAllHref = '/notifications/',
-		seeAllLabel = 'See All Notifications',
-		title = 'Notifications',
-	},
-	ref
-) {
+export function NotificationDialog({
+	children,
+	className = '',
+	emptyMessage = 'No notifications',
+	isLoading = false,
+	isMarkAllAsReadPending = false,
+	loadingMessage = 'Loading…',
+	onMarkAllAsRead,
+	seeAllHref = '/notifications/',
+	seeAllLabel = 'See All Notifications',
+	title = 'Notifications',
+	ref,
+}) {
 	const hasItems = Children.count(children) > 0;
 
 	return (
@@ -62,4 +60,4 @@ export const NotificationDialog = forwardRef(function NotificationDialog(
 			</div>
 		</div>
 	);
-});
+}

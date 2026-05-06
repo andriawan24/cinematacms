@@ -1,36 +1,38 @@
 import PropTypes from 'prop-types';
-
-const ACTIVE_TRACK_COLOR = '#C7E7EE';
-const THUMB_COLOR = '#EEF4F5';
+import { useState } from 'react';
 
 function joinClasses(...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
 export function Switch({
-	checked = false,
+	checked,
 	children,
 	className = '',
+	defaultChecked = false,
 	disabled = false,
-	indicatorSize = 14,
 	name,
 	onChange,
-	padding = 3,
+	readOnly = false,
 	value,
-	width = 30,
 	...props
 }) {
-	const resolvedIndicatorSize = Math.max(0, indicatorSize);
-	const resolvedPadding = Math.max(0, padding);
-	const minWidth = resolvedIndicatorSize + resolvedPadding * 2 + 10;
-	const resolvedWidth = Math.max(width, minWidth);
-	const trackHeight = resolvedIndicatorSize + resolvedPadding * 2;
-	const thumbLeft = checked ? resolvedWidth - resolvedPadding - resolvedIndicatorSize : resolvedPadding;
+	const isControlled = checked !== undefined;
+	const [internalChecked, setInternalChecked] = useState(Boolean(defaultChecked));
+	const resolvedChecked = isControlled ? checked : internalChecked;
+
+	function handleChange(event) {
+		if (!isControlled) {
+			setInternalChecked(event.target.checked);
+		}
+
+		onChange?.(event);
+	}
 
 	return (
 		<label
 			className={joinClasses(
-				'inline-flex cursor-pointer items-center gap-[16px] select-none',
+				'inline-flex cursor-pointer items-center gap-[16px] select-none [--switch-padding:3px] [--switch-thumb-size:14px] [--switch-width:30px]',
 				disabled && 'cursor-not-allowed opacity-60',
 				className
 			)}
@@ -40,36 +42,28 @@ export function Switch({
 			<input
 				type="checkbox"
 				className="peer sr-only"
-				checked={checked}
+				checked={isControlled ? checked : undefined}
+				defaultChecked={!isControlled ? defaultChecked : undefined}
 				disabled={disabled}
 				name={name}
+				readOnly={readOnly || (isControlled && !onChange)}
 				value={value}
-				onChange={onChange}
+				onChange={handleChange}
 				{...props}
 			/>
 
 			<span
 				className={joinClasses(
-					'relative inline-flex shrink-0 items-center rounded-full transition-colors duration-200',
-					checked ? '' : 'bg-cinemata-pacific-deep-900'
+					'inline-flex h-[calc(var(--switch-thumb-size)+var(--switch-padding)*2)] w-[var(--switch-width)] shrink-0 items-center rounded-full p-[var(--switch-padding)] transition-colors duration-200',
+					resolvedChecked ? 'justify-end' : 'justify-start'
 				)}
-				style={{
-					width: resolvedWidth,
-					height: trackHeight,
-					backgroundColor: checked ? ACTIVE_TRACK_COLOR : undefined,
-				}}
+				style={{ backgroundColor: resolvedChecked ? '#C7E7EE' : '#011C34' }}
 				data-switch-track=""
 				aria-hidden="true"
 			>
 				<span
-					className="absolute block rounded-full transition-[left] duration-200 ease-out"
-					style={{
-						top: resolvedPadding,
-						left: thumbLeft,
-						width: resolvedIndicatorSize,
-						height: resolvedIndicatorSize,
-						backgroundColor: THUMB_COLOR,
-					}}
+					className="block size-[var(--switch-thumb-size)] rounded-full bg-[#EEF4F5] transition-transform duration-200 ease-out"
+					style={{ backgroundColor: '#EEF4F5' }}
 					data-switch-thumb=""
 				/>
 			</span>
@@ -81,11 +75,10 @@ Switch.propTypes = {
 	checked: PropTypes.bool,
 	children: PropTypes.node,
 	className: PropTypes.string,
+	defaultChecked: PropTypes.bool,
 	disabled: PropTypes.bool,
-	indicatorSize: PropTypes.number,
 	name: PropTypes.string,
 	onChange: PropTypes.func,
-	padding: PropTypes.number,
+	readOnly: PropTypes.bool,
 	value: PropTypes.string,
-	width: PropTypes.number,
 };
