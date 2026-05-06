@@ -1,4 +1,15 @@
-import { Children, createContext, isValidElement, useContext, useEffect, useId, useMemo, useState } from 'react';
+import {
+	Children,
+	createContext,
+	isValidElement,
+	useCallback,
+	useContext,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from 'react';
 
 const TabViewContext = createContext(null);
 
@@ -121,13 +132,23 @@ function TabViewList({ children, className = '' }) {
 }
 
 function TabViewTrigger({ children, value, disabled = false, className = '' }) {
-	const { getPanelId, getTabId, selectedValue, selectValue, triggerItems, tabMode } =
+	const { getPanelId, getTabId, registerTrigger, selectedValue, selectValue, focusTrigger, triggerItems, tabMode } =
 		useTabViewContext('TabView.Trigger');
 	const isSelected = selectedValue === value;
 	const triggerIndex = triggerItems.findIndex((item) => item.value === value);
 
+	function selectAndFocus(nextValue) {
+		if (!nextValue) {
+			return;
+		}
+
+		selectValue(nextValue);
+		focusTrigger(nextValue);
+	}
+
 	return (
 		<button
+			ref={(node) => registerTrigger(value, node)}
 			type="button"
 			role="tab"
 			id={getTabId(value)}
@@ -141,24 +162,14 @@ function TabViewTrigger({ children, value, disabled = false, className = '' }) {
 					return;
 				}
 
-				if (event.key === 'ArrowRight') {
-					event.preventDefault();
-					selectValue(findEnabledTab(triggerItems, triggerIndex, 1)?.value);
-				}
-
-				if (event.key === 'ArrowLeft') {
-					event.preventDefault();
-					selectValue(findEnabledTab(triggerItems, triggerIndex, -1)?.value);
-				}
-
 				if (event.key === 'Home') {
 					event.preventDefault();
-					selectValue(triggerItems.find((item) => !item.disabled)?.value);
+					selectAndFocus(triggerItems.find((item) => !item.disabled)?.value);
 				}
 
 				if (event.key === 'End') {
 					event.preventDefault();
-					selectValue([...triggerItems].reverse().find((item) => !item.disabled)?.value);
+					selectAndFocus([...triggerItems].reverse().find((item) => !item.disabled)?.value);
 				}
 			}}
 			className={joinClasses(
@@ -290,6 +301,7 @@ function TabViewRoot({
 	const childTriggerItems = useMemo(() => flattenTabsChildren(children), [children]);
 	const simpleTabContentItems = useMemo(() => extractSimpleTabContentItems(children), [children]);
 	const sourceTabs = tabs.length ? tabs : simpleTabContentItems.length ? simpleTabContentItems : childTriggerItems;
+	const triggerRefs = useRef(new Map());
 	const controlledValue = selectedTab ?? value;
 	const uncontrolledDefaultValue = defaultSelectedTab ?? defaultValue;
 	const [internalValue, setInternalValue] = useState(() =>
@@ -304,30 +316,58 @@ function TabViewRoot({
 		}
 	}, [controlledValue, sourceTabs]);
 
-	function selectValue(nextValue) {
-		const resolvedValue = clampTabsValue(sourceTabs, nextValue);
+	const selectValue = useCallback(
+		(nextValue) => {
+			const resolvedValue = clampTabsValue(sourceTabs, nextValue);
 
-		if (controlledValue === undefined) {
-			setInternalValue(resolvedValue);
+			if (controlledValue === undefined) {
+				setInternalValue(resolvedValue);
+			}
+
+			if (resolvedValue !== undefined) {
+				onSelectedTabChange?.(resolvedValue);
+				onValueChange?.(resolvedValue);
+			}
+		},
+		[sourceTabs, controlledValue, onSelectedTabChange, onValueChange]
+	);
+
+	const registerTrigger = useCallback((tabValue, node) => {
+		if (!tabValue) {
+			return;
 		}
 
-		if (resolvedValue !== undefined) {
-			onSelectedTabChange?.(resolvedValue);
-			onValueChange?.(resolvedValue);
+		if (node) {
+			triggerRefs.current.set(tabValue, node);
+			return;
 		}
-	}
+
+		triggerRefs.current.delete(tabValue);
+	}, []);
+
+	const focusTrigger = useCallback((tabValue) => {
+		if (!tabValue) {
+			return;
+		}
+
+		requestAnimationFrame(() => {
+			triggerRefs.current.get(tabValue)?.focus();
+		});
+	}, []);
 
 	const contextValue = useMemo(
 		() => ({
 			ariaLabel,
+			focusTrigger,
 			getPanelId: (tabValue) => `${generatedId}-panel-${tabValue}`,
 			getTabId: (tabValue) => `${generatedId}-tab-${tabValue}`,
+			registerTrigger,
 			selectedValue: safeSelectedValue,
 			selectValue,
 			tabMode,
 			triggerItems: sourceTabs,
 		}),
-		[ariaLabel, generatedId, safeSelectedValue, sourceTabs, tabMode]
+		[ariaLabel, focusTrigger, generatedId, registerTrigger, safeSelectedValue, selectValue, sourceTabs, tabMode]
 	);
 
 	return (

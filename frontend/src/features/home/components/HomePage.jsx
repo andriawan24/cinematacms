@@ -15,7 +15,7 @@ export function HomePage() {
 							<span className="caption-caption-10-semibold inline-flex rounded-full bg-cinemata-coral-reef-300 px-3 py-1 uppercase tracking-[0.18em] text-cinemata-pacific-deep-900">
 								<span className="mr-2 inline-flex items-center" aria-hidden="true">
 									<Icon
-										name="exampleIcon"
+										name="example"
 										decorative={true}
 										size="xs"
 										className="text-cinemata-pacific-deep-900"

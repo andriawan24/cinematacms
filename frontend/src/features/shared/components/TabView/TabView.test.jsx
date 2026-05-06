@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { TabContent, TabView } from './TabView';
@@ -100,7 +100,7 @@ describe('TabView', () => {
 		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload many titles.');
 	});
 
-	it('supports keyboard navigation across generated tabs', async () => {
+	it('does not change tabs when ArrowRight is pressed', async () => {
 		const user = userEvent.setup();
 		render(
 			<TabView defaultValue="single-film-upload" aria-label="Upload mode">
@@ -114,7 +114,30 @@ describe('TabView', () => {
 		selectedTab.focus();
 		await user.keyboard('{ArrowRight}');
 
+		expect(screen.getByRole('tab', { name: 'Single Film Upload' })).toHaveAttribute('aria-selected', 'true');
+		expect(screen.getByRole('tab', { name: 'Single Film Upload' })).toHaveFocus();
+		expect(screen.getByRole('tabpanel')).toHaveTextContent('Upload one title.');
+	});
+
+	it('supports Home and End keyboard navigation across generated tabs', async () => {
+		const user = userEvent.setup();
+		render(
+			<TabView defaultValue="single-film-upload" aria-label="Upload mode">
+				<TabContent title="Single Film Upload" content={<p>Upload one title.</p>} />
+				<TabContent title="Bulk Upload" content={<p>Upload many titles.</p>} />
+			</TabView>
+		);
+
+		const selectedTab = screen.getByRole('tab', { name: 'Single Film Upload' });
+
+		selectedTab.focus();
+		await user.keyboard('{End}');
+		await waitFor(() => expect(screen.getByRole('tab', { name: 'Bulk Upload' })).toHaveFocus());
 		expect(screen.getByRole('tab', { name: 'Bulk Upload' })).toHaveAttribute('aria-selected', 'true');
+
+		await user.keyboard('{Home}');
+		await waitFor(() => expect(screen.getByRole('tab', { name: 'Single Film Upload' })).toHaveFocus());
+		expect(screen.getByRole('tab', { name: 'Single Film Upload' })).toHaveAttribute('aria-selected', 'true');
 	});
 
 	it('still supports the array API with dynamic content', async () => {

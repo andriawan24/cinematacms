@@ -12,7 +12,11 @@ describe('Badge', () => {
 	});
 
 	it('supports style overrides', () => {
-		render(<Badge color="#111111" style={{ letterSpacing: '0.12em' }}>Now Showing</Badge>);
+		render(
+			<Badge color="#111111" style={{ letterSpacing: '0.12em' }}>
+				Now Showing
+			</Badge>
+		);
 
 		const badge = screen.getByText('Now Showing');
 
