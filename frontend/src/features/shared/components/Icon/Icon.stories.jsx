@@ -25,6 +25,7 @@ const meta = {
 				'magnifyingGlass',
 				'infoCircle',
 				'info3d',
+				'eye',
 			],
 			description: 'Shared icon name resolved from the SVG registry.',
 			table: {

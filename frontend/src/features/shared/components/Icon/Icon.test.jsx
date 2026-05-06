@@ -10,6 +10,7 @@ describe('iconRegistry', () => {
 		expect(iconNames).toContain('magnifyingGlass');
 		expect(iconNames).toContain('infoCircle');
 		expect(iconNames).toContain('info3d');
+		expect(iconNames).toContain('eye');
 	});
 
 	it('does not resolve inherited Object.prototype keys as icons', () => {

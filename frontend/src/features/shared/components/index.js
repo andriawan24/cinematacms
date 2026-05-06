@@ -13,6 +13,7 @@ export { RadioButton } from './RadioButton';
 export { CheckboxButton } from './CheckboxButton';
 export { ProgressBar } from './ProgressBar';
 export { SquareImage } from './SquareImage';
+export { Stepper } from './Stepper';
 export { Switch } from './Switch';
 export { TextAlert } from './TextAlert';
 export { TabView, TabContent } from './TabView';

@@ -25,8 +25,11 @@ describe('ConfirmationDialogContent', () => {
 		const shell = dialog.firstElementChild;
 
 		expect(dialog.className).toContain('max-w-[520px]');
-		expect(dialog.className).toContain('rounded-[16px]');
+		expect(dialog.className).toContain('min-w-2xl');
+		expect(dialog.className).toContain('p-0');
+		expect(shell?.className).toContain('rounded-2xl');
 		expect(shell?.className).toContain('p-[26px]');
+		expect(shell?.className).toContain('border-cinemata-strait-blue-300');
 		expect(title.className).toContain('heading-h5-24-medium');
 		expect(title.className).toContain('text-cinemata-strait-blue-50');
 		expect(contentSection?.className).toContain('items-start');
