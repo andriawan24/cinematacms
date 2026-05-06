@@ -26,10 +26,12 @@ const meta = {
 				'infoCircle',
 				'info3d',
 				'eye',
+				'eyeSlash',
 				'upload',
 				'uploadSmall',
 				'moon',
 				'sun',
+				'infoYellow',
 			],
 			description: 'Shared icon name resolved from the SVG registry.',
 			table: {

@@ -24,6 +24,7 @@ export const NotificationDialog = forwardRef(function NotificationDialog(
 	return (
 		<div
 			ref={ref}
+			role="dialog"
 			className={joinClasses(
 				'absolute right-0 top-full z-50 mt-1 w-80 overflow-hidden rounded-lg border border-border-input/40 bg-surface-popup shadow-lg',
 				className

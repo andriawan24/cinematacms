@@ -53,7 +53,8 @@ const meta = {
 		layout: {
 			control: 'radio',
 			options: ['wrap', 'fill'],
-			description: 'Controls whether segments wrap their content or distribute evenly across the available width.',
+			description:
+				'Controls whether segments wrap their content or distribute evenly across the available width.',
 			table: {
 				type: { summary: "'wrap' | 'fill'" },
 				defaultValue: { summary: "'wrap'" },

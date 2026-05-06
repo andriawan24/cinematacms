@@ -30,14 +30,7 @@ describe('SegmentButton', () => {
 	});
 
 	it('supports full-width distributed segments when layout is fill', () => {
-		render(
-			<SegmentButton
-				options={OPTIONS}
-				defaultValue="dark"
-				layout="fill"
-				aria-label="Theme mode"
-			/>
-		);
+		render(<SegmentButton options={OPTIONS} defaultValue="dark" layout="fill" aria-label="Theme mode" />);
 
 		const group = screen.getByLabelText('Theme mode');
 		const darkButton = screen.getByRole('button', { name: 'Dark' });
@@ -88,14 +81,7 @@ describe('SegmentButton', () => {
 		function ControlledSegmentButton() {
 			const [value, setValue] = useState('dark');
 
-			return (
-				<SegmentButton
-					options={OPTIONS}
-					value={value}
-					onValueChange={setValue}
-					aria-label="Theme mode"
-				/>
-			);
+			return <SegmentButton options={OPTIONS} value={value} onValueChange={setValue} aria-label="Theme mode" />;
 		}
 
 		render(<ControlledSegmentButton />);
