@@ -11,6 +11,10 @@ describe('iconRegistry', () => {
 		expect(iconNames).toContain('infoCircle');
 		expect(iconNames).toContain('info3d');
 		expect(iconNames).toContain('eye');
+		expect(iconNames).toContain('upload');
+		expect(iconNames).toContain('uploadSmall');
+		expect(iconNames).toContain('moon');
+		expect(iconNames).toContain('sun');
 	});
 
 	it('does not resolve inherited Object.prototype keys as icons', () => {

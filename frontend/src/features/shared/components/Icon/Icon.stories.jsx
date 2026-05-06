@@ -26,6 +26,10 @@ const meta = {
 				'infoCircle',
 				'info3d',
 				'eye',
+				'upload',
+				'uploadSmall',
+				'moon',
+				'sun',
 			],
 			description: 'Shared icon name resolved from the SVG registry.',
 			table: {
