@@ -3,7 +3,7 @@ import { expect, userEvent, within } from 'storybook/test';
 import { FollowButton } from './FollowButton';
 
 const meta = {
-	title: 'Application/FollowButton',
+	title: 'Components/Actions/Follow Button',
 	component: FollowButton,
 	tags: ['autodocs'],
 	args: {
@@ -13,9 +13,41 @@ const meta = {
 	argTypes: {
 		personName: {
 			control: 'text',
+			description: 'Person name inserted into the default follow label when the button is not active.',
+			table: {
+				type: { summary: 'string' },
+				defaultValue: { summary: "''" },
+			},
 		},
 		followed: {
 			control: 'boolean',
+			description: 'Toggles the button between follow and following states.',
+			table: {
+				type: { summary: 'boolean' },
+				defaultValue: { summary: 'false' },
+			},
+		},
+		className: {
+			control: 'text',
+			description: 'Optional extra classes applied to the underlying button.',
+			table: {
+				type: { summary: 'string' },
+				defaultValue: { summary: "''" },
+			},
+		},
+		onClick: {
+			action: 'clicked',
+			description: 'Callback fired when the button is pressed.',
+			table: {
+				type: { summary: '(event: MouseEvent<HTMLButtonElement>) => void' },
+			},
+		},
+		'aria-label': {
+			control: 'text',
+			description: 'Optional accessible label override. Defaults to the generated follow/following label.',
+			table: {
+				type: { summary: 'string' },
+			},
 		},
 	},
 };

@@ -5,7 +5,7 @@ import { getIconComponent } from './iconRegistry';
 const warnedIcons = new Set();
 
 const ICON_SIZES = {
-	xs: 16,
+	xs: 14,
 	sm: 18,
 	md: 24,
 	lg: 32,

@@ -10,10 +10,12 @@ const VARIANT_CLASSES = {
 	'secondary-outline':
 		'border border-cinemata-sunset-horizon-500 bg-transparent text-cinemata-sunset-horizon-500 hover:bg-cinemata-sunset-horizon-500 hover:text-cinemata-white',
 	text: 'border-none bg-transparent',
+	icon: 'border-none bg-transparent',
 };
 
 const TEXT_COLOR_CLASSES = {
 	'strait-blue-600p': 'text-cinemata-strait-blue-600p hover:text-cinemata-strait-blue-800',
+	'sunset-horizon-300': 'text-cinemata-sunset-horizon-300 hover:text-cinemata-sunset-horizon-500',
 	'sunset-horizon-500': 'text-cinemata-sunset-horizon-500 hover:text-cinemata-sunset-horizon-700',
 	'pacific-deep-950': 'text-cinemata-pacific-deep-950 hover:text-cinemata-pacific-deep-900',
 	'red-500': 'text-cinemata-red-500 hover:text-cinemata-red-600',
@@ -27,7 +29,7 @@ function getTextColorClasses(color) {
 }
 
 function getVariantClasses(variant, color) {
-	if (variant === 'text') {
+	if (variant === 'text' || variant === 'icon') {
 		return joinClasses(VARIANT_CLASSES.text, getTextColorClasses(color));
 	}
 
@@ -38,8 +40,8 @@ function joinClasses(...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
-function isRightIconVariant(variant) {
-	return variant === 'special';
+function isIconOnlyVariant(variant) {
+	return variant === 'icon';
 }
 
 export function Button({
@@ -47,10 +49,12 @@ export function Button({
 	className = '',
 	color = 'strait-blue-600p',
 	icon = null,
+	iconPosition,
 	type = 'button',
 	variant = 'primary',
 	...props
 }) {
+	const resolvedIconPosition = iconPosition ?? (variant === 'special' ? 'right' : 'left');
 	const iconElement = icon ? (
 		<span
 			aria-hidden="true"
@@ -65,16 +69,21 @@ export function Button({
 		<button
 			type={type}
 			className={joinClasses(
-				'body-body-14-bold inline-flex items-center justify-center gap-(--space-xs) rounded-(--radius-4) px-(--space-base) py-(--size-10) transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+				'body-body-14-bold inline-flex items-center justify-center transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+				isIconOnlyVariant(variant)
+					? 'gap-0 p-0'
+					: 'gap-(--space-xs) rounded-(--radius-4) px-(--space-base) py-(--size-10)',
 				getVariantClasses(variant, color),
 				'cursor-pointer',
 				className
 			)}
 			{...props}
 		>
-			{iconElement && !isRightIconVariant(variant) ? iconElement : null}
-			<span className="inline-flex items-center justify-center leading-none">{children}</span>
-			{iconElement && isRightIconVariant(variant) ? iconElement : null}
+			{iconElement && resolvedIconPosition !== 'right' ? iconElement : null}
+			{isIconOnlyVariant(variant) ? null : (
+				<span className="inline-flex items-center justify-center leading-none">{children}</span>
+			)}
+			{iconElement && resolvedIconPosition === 'right' ? iconElement : null}
 		</button>
 	);
 }

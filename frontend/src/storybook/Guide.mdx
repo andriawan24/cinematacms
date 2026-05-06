@@ -1,0 +1,48 @@
+import { Meta, Title, Subtitle, Heading, Canvas } from '@storybook/addon-docs/blocks';
+import * as DropdownStories from '../features/shared/components/Dropdown/Dropdown.stories';
+import * as EditorFieldStories from '../features/shared/components/EditorField/EditorField.stories';
+
+<Meta title="Introduction/Guide" />
+
+<Title>Storybook Guide</Title>
+<Subtitle>Practical rules for adding and maintaining shared component stories</Subtitle>
+
+Use this guide when creating or updating shared components so Storybook stays useful for design review, QA, and future contributors.
+
+<Heading>Component checklist</Heading>
+
+Before calling a shared component ready, make sure it includes:
+
+- A default story with realistic content
+- Stories for helper, focused, error, and disabled states when they exist
+- Clear prop descriptions in `argTypes` so docs do not fall back to `unknown`
+- Tests for the core state logic, not only snapshots
+- Light and dark verification through the global toolbar toggle
+
+<Heading>Writing good stories</Heading>
+
+- Keep story labels and placeholder text realistic so spacing issues are visible
+- Prefer one story per meaningful state rather than one giant catch-all story
+- Use `play` functions for focus or interaction states that need runtime behavior
+- Keep `className` examples limited to intentional layout overrides
+
+<Heading>Current form field patterns</Heading>
+
+<Canvas of={DropdownStories.Default} />
+
+<Canvas of={EditorFieldStories.Default} />
+
+<Heading>Where to add new work</Heading>
+
+- Component code: `src/features/shared/components/<ComponentName>`
+- Story file: `src/features/shared/components/<ComponentName>/<ComponentName>.stories.jsx`
+- Tests: `src/features/shared/components/<ComponentName>/<ComponentName>.test.jsx`
+- Shared export: `src/features/shared/components/index.js`
+
+<Heading>Review notes</Heading>
+
+When a component supports theming or stateful visuals, Storybook should explain:
+
+- what changes in default, hover, focus, filled, error, and disabled states
+- whether state is driven by native browser behavior or custom props
+- which props are public API versus docs-only examples
