@@ -38,6 +38,14 @@ const commentsText = {
 	disabledCommentsMsg: 'Comments are disabled',
 };
 
+function formatAuthorThumbUrl(authorThumbnailUrl) {
+	if ('string' !== typeof authorThumbnailUrl || '' === authorThumbnailUrl.trim()) {
+		return null;
+	}
+
+	return (SiteContext._currentValue?.url || '') + '/' + authorThumbnailUrl.replace(/^\//g, '');
+}
+
 function CommentForm(props) {
 	props = { comment_type: 'new', ...props };
 
@@ -257,7 +265,11 @@ function Comment(props) {
 	useEffect(() => {
 		if (ENABLED_COMMENTS_READ_MORE) {
 			PageStore.on('window_resize', onWindowResize);
-			setEnabledViewMoreContent(commentTextInnerRef.offsetHeight > commentTextRef.offsetHeight);
+			if (commentTextRef.current && commentTextInnerRef.current) {
+				setEnabledViewMoreContent(
+					commentTextInnerRef.current.offsetHeight > commentTextRef.current.offsetHeight
+				);
+			}
 		}
 
 		return () => {
@@ -268,15 +280,19 @@ function Comment(props) {
 	}, []);
 
 	function parseComment(text) {
-		return { __html: text.replace(/\n/g, `<br />`) };
+		return { __html: String(text || '').replace(/\n/g, `<br />`) };
 	}
 
 	return (
 		<div className="comment">
-			<div className="comment-inner">
-				<a className="comment-author-thumb" href={props.author_link} title={props.author_name}>
-					<img src={props.author_thumb} alt={props.author_name} />
-				</a>
+				<div className="comment-inner">
+					<a className="comment-author-thumb" href={props.author_link} title={props.author_name}>
+						{props.author_thumb ? (
+							<img src={props.author_thumb} alt={props.author_name} />
+						) : (
+							<MaterialIcon type="person" />
+						)}
+					</a>
 				<div className="comment-content">
 					<div className="comment-meta">
 						<div className="comment-author">
@@ -525,13 +541,9 @@ export default function CommentsList(props) {
 									media_id={mediaId}
 									text={c.text}
 									author_name={c.author_name}
-									author_link={c.author_profile}
-									author_thumb={
-										(SiteContext._currentValue?.url || '') +
-										'/' +
-										c.author_thumbnail_url.replace(/^\//g, '')
-									}
-									publish_date={c.add_date}
+										author_link={c.author_profile}
+										author_thumb={formatAuthorThumbUrl(c.author_thumbnail_url)}
+										publish_date={c.add_date}
 									likes={0}
 									dislikes={0}
 								/>
