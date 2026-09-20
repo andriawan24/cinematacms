@@ -22,9 +22,6 @@ function isMediaInUserPlaylist() {
 	);
 }
 
-const PRIVATE_MEDIA_NOTICE =
-	"Private films can't be added to a playlist. Change this film's visibility to Public first.";
-
 function isMediaPrivate() {
 	return MediaPageStore.get('media-data')?.state === 'private';
 }
@@ -107,7 +104,7 @@ export function MediaSaveButton() {
 					<div className="flex w-full flex-col gap-8 px-8 py-8">
 						<div className="flex items-center justify-between">
 							<Text as="h2" variant="h4-medium" className="text-text-strong m-0">
-								This film is private
+								Your film is private
 							</Text>
 							<DialogClose>
 								<Button
@@ -120,7 +117,7 @@ export function MediaSaveButton() {
 							</DialogClose>
 						</div>
 						<Text as="p" variant="body-14" className="text-text-muted m-0 p-0">
-							{PRIVATE_MEDIA_NOTICE}
+							Private films can't be added to a playlist. Update its visibility status to add it.
 						</Text>
 					</div>
 				) : (
