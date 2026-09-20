@@ -54,7 +54,7 @@ vi.mock('./media-save/PlaylistsSelection', () => ({
 	PlaylistsSelection: () => <div>Playlist picker</div>,
 }));
 
-const PRIVATE_NOTICE = "Private films can't be added to a playlist. Change this film's visibility to Public first.";
+const PRIVATE_NOTICE = "Private films can't be added to a playlist. Update its visibility status to add it.";
 
 async function openSaveDialog() {
 	await userEvent.click(screen.getAllByRole('button', { name: /playlist/i })[0]);
