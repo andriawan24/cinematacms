@@ -94,8 +94,10 @@ export function CommentForm({ friendlyToken, onSubmitted }) {
 		// While the @mention menu is open, Enter picks the highlighted person
 		// rather than posting a half-written comment.
 		if (mentions.isMenuOpen()) return;
-		// Shift+Enter falls through to the textarea so it starts a new line.
-		if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+		if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+		// Ctrl+Enter and Cmd+Enter post. A bare Enter falls through to the
+		// textarea so it starts a new line.
+		if (event.ctrlKey || event.metaKey) {
 			event.preventDefault();
 			submit();
 		}

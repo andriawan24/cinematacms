@@ -1,6 +1,6 @@
 /**
- * Cover for typing a comment across several lines: Shift+Enter adds a line,
- * Enter still posts. Issue #869.
+ * Cover for typing a comment across several lines: Enter adds a line and
+ * Ctrl/Cmd+Enter posts. Issues #869 and #944.
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -40,16 +40,27 @@ describe('CommentForm multiline', () => {
 		expect(screen.getByLabelText('Leave a comment').tagName).toBe('TEXTAREA');
 	});
 
-	it('Shift+Enter does not post the comment', async () => {
+	it('Enter on its own does not post the comment', async () => {
 		const user = userEvent.setup();
 		render(<CommentForm friendlyToken="tok" />);
 		const input = screen.getByLabelText('Leave a comment');
 
 		await user.click(input);
 		await user.keyboard('first line');
-		pressEnter(input, { shiftKey: true });
+		pressEnter(input);
 
 		expect(submitMutate).not.toHaveBeenCalled();
+	});
+
+	it('Enter starts a new line in the field', async () => {
+		const user = userEvent.setup();
+		render(<CommentForm friendlyToken="tok" />);
+		const input = screen.getByLabelText('Leave a comment');
+
+		await user.click(input);
+		await user.keyboard('first line{Enter}second line');
+
+		expect(input).toHaveValue('first line\nsecond line');
 	});
 
 	it('Shift+Enter starts a new line in the field', async () => {
@@ -63,14 +74,38 @@ describe('CommentForm multiline', () => {
 		expect(input).toHaveValue('first line\nsecond line');
 	});
 
+	it('Ctrl+Enter posts the comment', async () => {
+		const user = userEvent.setup();
+		render(<CommentForm friendlyToken="tok" />);
+		const input = screen.getByLabelText('Leave a comment');
+
+		await user.click(input);
+		await user.keyboard('one line');
+		pressEnter(input, { ctrlKey: true });
+
+		expect(submitMutate).toHaveBeenCalledWith('one line', expect.anything());
+	});
+
+	it('Cmd+Enter posts the comment', async () => {
+		const user = userEvent.setup();
+		render(<CommentForm friendlyToken="tok" />);
+		const input = screen.getByLabelText('Leave a comment');
+
+		await user.click(input);
+		await user.keyboard('one line');
+		pressEnter(input, { metaKey: true });
+
+		expect(submitMutate).toHaveBeenCalledWith('one line', expect.anything());
+	});
+
 	it('posts the line breaks the writer typed', async () => {
 		const user = userEvent.setup();
 		render(<CommentForm friendlyToken="tok" />);
 		const input = screen.getByLabelText('Leave a comment');
 
 		await user.click(input);
-		await user.keyboard('first line{Shift>}{Enter}{/Shift}second line');
-		pressEnter(input);
+		await user.keyboard('first line{Enter}second line');
+		pressEnter(input, { ctrlKey: true });
 
 		expect(submitMutate).toHaveBeenCalledWith('first line\nsecond line', expect.anything());
 	});
@@ -82,17 +117,5 @@ describe('CommentForm multiline', () => {
 		// the capped comments panel a shrinkable box is pushed back to its old
 		// height and the grown field overlaps the avatar and submit row.
 		expect(container.firstChild).toHaveClass('shrink-0');
-	});
-
-	it('Enter on its own still posts the comment', async () => {
-		const user = userEvent.setup();
-		render(<CommentForm friendlyToken="tok" />);
-		const input = screen.getByLabelText('Leave a comment');
-
-		await user.click(input);
-		await user.keyboard('one line');
-		pressEnter(input);
-
-		expect(submitMutate).toHaveBeenCalledWith('one line', expect.anything());
 	});
 });

@@ -15,8 +15,8 @@ const LINE_HEIGHT_PX = 24;
  * The comment field, with each @mention coloured in place and treated as one
  * unit by the delete keys.
  *
- * It is a <textarea> so Shift+Enter can start a new line; it grows with the
- * text up to MAX_VISIBLE_LINES and scrolls after that.
+ * It is a <textarea> so Enter can start a new line; it grows with the text up
+ * to MAX_VISIBLE_LINES and scrolls after that.
  *
  * `inputRef` is the caller's ref on the real <textarea>, so Tribute.js and the
  * timestamp button keep working against the same node.
