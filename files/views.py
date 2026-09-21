@@ -198,7 +198,7 @@ def _build_featured_queryset(limit=None):
     return media
 
 
-def _home_featured_envelope(results, source_envelope=None):
+def _home_list_envelope(results, source_envelope=None):
     envelope = {
         "count": len(results),
         "next": None,
@@ -286,76 +286,151 @@ def _attach_hero_playback_to_first_featured_item(items, request=None):
         return item_list
 
 
+def _get_home_featured_initial_data(request, user_id, request_origin):
+    home_featured_cache_key = get_media_list_cache_key(
+        show="featured_home", page=1, user_id=user_id, origin=request_origin
+    )
+    cached_home_featured = get_cached_result(home_featured_cache_key)
+    if cached_home_featured is not None:
+        return cached_home_featured
+
+    featured_cache_key = get_media_list_cache_key(show="featured", page=1, user_id=user_id, origin=request_origin)
+    cached_featured = get_cached_result(featured_cache_key)
+    if cached_featured is not None:
+        featured_results = list((cached_featured.get("results") or [])[:HOME_INITIAL_LIMIT])
+        source_envelope = cached_featured
+    else:
+        qs = (
+            _build_featured_queryset(limit=HOME_INITIAL_LIMIT)
+            .select_related("user")
+            .prefetch_related("category", "topics")
+        )
+        featured_results = list(MediaSerializer(qs, many=True, context={"request": request}).data)
+        source_envelope = None
+    featured_results = _attach_hero_playback_to_first_featured_item(featured_results, request=request)
+    featured_results = _slim_home_media_results(featured_results)
+    home_initial_featured = _home_list_envelope(featured_results, source_envelope=source_envelope)
+    set_cached_result(home_featured_cache_key, home_initial_featured, MEDIA_LIST_TIMEOUT)
+    return home_initial_featured
+
+
+def _get_home_recommended_initial_data(request, user_id, request_origin):
+    # MediaList.get skips caching for show=recommended; this warms SSR hydration only.
+    recommended_cache_key = get_media_list_cache_key(
+        show="recommended_home", page=1, user_id=user_id, origin=request_origin
+    )
+    cached_recommended = get_cached_result(recommended_cache_key)
+    if cached_recommended is not None:
+        return cached_recommended
+
+    recommended_media = show_recommended_media(request, limit=HOME_INITIAL_LIMIT)
+    recommended_results = list(MediaSerializer(list(recommended_media), many=True, context={"request": request}).data)
+    recommended_results = _slim_home_media_results(recommended_results)
+    home_initial_recommended = _home_recommended_envelope(recommended_results)
+    set_cached_result(recommended_cache_key, home_initial_recommended, MEDIA_LIST_TIMEOUT)
+    return home_initial_recommended
+
+
+def _get_home_latest_initial_data(request, user_id, request_origin):
+    """
+    Seed the Recent videos grid so the homepage does not wait for
+    /api/v1/media?show=latest after its JavaScript boots.
+
+    Mirrors the featured path: reuse the API's page-1 cache when it is warm,
+    slim the items to the homepage fields, and keep the slim payload under its
+    own key so the generic media-list cache contract is unchanged.
+    """
+    home_latest_cache_key = get_media_list_cache_key(show="latest_home", page=1, user_id=user_id, origin=request_origin)
+    cached_home_latest = get_cached_result(home_latest_cache_key)
+    if cached_home_latest is not None:
+        return cached_home_latest
+
+    latest_cache_key = get_media_list_cache_key(show="latest", page=1, user_id=user_id, origin=request_origin)
+    cached_latest = get_cached_result(latest_cache_key)
+    if cached_latest is not None:
+        latest_results = list((cached_latest.get("results") or [])[:HOME_INITIAL_LIMIT])
+        source_envelope = cached_latest
+    else:
+        qs = (
+            Media.objects.filter(state="public", encoding_status="success", is_reviewed=True)
+            .order_by("-add_date")
+            .select_related("user")
+            .prefetch_related("category", "topics")[:HOME_INITIAL_LIMIT]
+        )
+        latest_results = list(MediaSerializer(qs, many=True, context={"request": request}).data)
+        source_envelope = None
+    latest_results = _slim_home_media_results(latest_results)
+    home_initial_latest = _home_list_envelope(latest_results, source_envelope=source_envelope)
+    set_cached_result(home_latest_cache_key, home_initial_latest, MEDIA_LIST_TIMEOUT)
+    return home_initial_latest
+
+
+def _get_home_index_featured_initial_data(request):
+    """
+    Seed the admin-configured homepage playlist rows with the same payload as
+    /api/v1/indexfeatured. Without it the page paints skeleton rows and removes
+    them when the response arrives, which shifts everything below the hero.
+    The query is tiny and the API is uncached, so this stays uncached too.
+    """
+    rows = IndexPageFeatured.objects.filter(active=True).order_by("ordering")
+    return list(IndexPageFeaturedSerializer(rows, many=True, context={"request": request}).data)
+
+
 def _get_home_initial_data(request):
     """
-    Fetch featured and recommended payloads for SSR hydration.
+    Build the payloads that index_revamp.html embeds through json_script.
 
-    Uses home-specific cache keys so SSR can cache the hero-enriched payload
-    without changing the generic media-list API cache contract.
-    Returns paginated envelopes ready for json_script.
+    Each block is built on its own so one failure does not blank the others.
+    Featured and recommended fall back to empty envelopes, matching the empty
+    API response. Latest and index_featured fall back to None: the entry only
+    seeds list-shaped payloads, so the client fetches those from the API rather
+    than rendering an empty grid or dropping the playlist rows.
     """
+    user_id = request.user.id if request.user.is_authenticated else None
+    request_origin = get_request_cache_origin(request)
+
     try:
-        user_id = request.user.id if request.user.is_authenticated else None
-        request_origin = get_request_cache_origin(request)
-
-        # --- Featured ---
-        home_featured_cache_key = get_media_list_cache_key(
-            show="featured_home", page=1, user_id=user_id, origin=request_origin
-        )
-        cached_home_featured = get_cached_result(home_featured_cache_key)
-        if cached_home_featured is not None:
-            home_initial_featured = cached_home_featured
-        else:
-            featured_cache_key = get_media_list_cache_key(
-                show="featured", page=1, user_id=user_id, origin=request_origin
-            )
-            cached_featured = get_cached_result(featured_cache_key)
-            if cached_featured is not None:
-                featured_results = list((cached_featured.get("results") or [])[:HOME_INITIAL_LIMIT])
-                source_envelope = cached_featured
-            else:
-                qs = (
-                    _build_featured_queryset(limit=HOME_INITIAL_LIMIT)
-                    .select_related("user")
-                    .prefetch_related("category", "topics")
-                )
-                featured_results = list(MediaSerializer(qs, many=True, context={"request": request}).data)
-                source_envelope = None
-            featured_results = _attach_hero_playback_to_first_featured_item(featured_results, request=request)
-            featured_results = _slim_home_media_results(featured_results)
-            home_initial_featured = _home_featured_envelope(featured_results, source_envelope=source_envelope)
-            set_cached_result(home_featured_cache_key, home_initial_featured, MEDIA_LIST_TIMEOUT)
-
-        # --- Recommended ---
-        # MediaList.get skips caching for show=recommended; this warms SSR hydration only.
-        recommended_cache_key = get_media_list_cache_key(
-            show="recommended_home", page=1, user_id=user_id, origin=request_origin
-        )
-        cached_recommended = get_cached_result(recommended_cache_key)
-        if cached_recommended is not None:
-            home_initial_recommended = cached_recommended
-        else:
-            recommended_media = show_recommended_media(request, limit=HOME_INITIAL_LIMIT)
-            recommended_results = list(
-                MediaSerializer(list(recommended_media), many=True, context={"request": request}).data
-            )
-            recommended_results = _slim_home_media_results(recommended_results)
-            home_initial_recommended = _home_recommended_envelope(recommended_results)
-            set_cached_result(recommended_cache_key, home_initial_recommended, MEDIA_LIST_TIMEOUT)
-
-        return home_initial_featured, home_initial_recommended
+        featured = _get_home_featured_initial_data(request, user_id, request_origin)
     except Exception:
-        logger.exception("Failed to build home initial data")
-        return _home_featured_envelope([]), _home_recommended_envelope([])
+        logger.exception("Failed to build home featured initial data")
+        featured = _home_list_envelope([])
+
+    try:
+        recommended = _get_home_recommended_initial_data(request, user_id, request_origin)
+    except Exception:
+        logger.exception("Failed to build home recommended initial data")
+        recommended = _home_recommended_envelope([])
+
+    try:
+        latest = _get_home_latest_initial_data(request, user_id, request_origin)
+    except Exception:
+        logger.exception("Failed to build home latest initial data")
+        latest = None
+
+    try:
+        index_featured = _get_home_index_featured_initial_data(request)
+    except Exception:
+        logger.exception("Failed to build home index featured initial data")
+        index_featured = None
+
+    return {
+        "featured": featured,
+        "recommended": recommended,
+        "latest": latest,
+        "index_featured": index_featured,
+    }
 
 
 def index(request):
     template = resolve_template(request, "home")
     context = {}
     if getattr(request, "ui_variant", None) == "revamp":
-        featured, recommended = _get_home_initial_data(request)
+        initial_data = _get_home_initial_data(request)
+        featured = initial_data["featured"]
         context["home_initial_featured"] = featured
-        context["home_initial_recommended"] = recommended
+        context["home_initial_recommended"] = initial_data["recommended"]
+        context["home_initial_latest"] = initial_data["latest"]
+        context["home_initial_index_featured"] = initial_data["index_featured"]
         first_featured = (featured.get("results") or [None])[0] if isinstance(featured, dict) else None
         if isinstance(first_featured, dict):
             hero_playback = first_featured.get("hero_playback") or {}

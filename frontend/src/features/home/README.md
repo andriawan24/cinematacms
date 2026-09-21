@@ -4,12 +4,20 @@ Modern-track home page: hero section + Featured by Curators row + admin-configur
 
 ## Data flow
 
-1. Django renders `templates/cms/index_revamp.html` and injects two `json_script` blocks:
+1. Django renders `templates/cms/index_revamp.html` and injects four `json_script` blocks:
    - `#home-initial-data-featured` — `/api/v1/media?show=featured` payload (first 20 items)
    - `#home-initial-data-recommended` — `/api/v1/media?show=recommended` payload
+   - `#home-initial-data-index-featured` — `/api/v1/indexfeatured` payload (admin playlist rows)
+   - `#home-initial-data-latest` — `/api/v1/media?show=latest` payload (first 20 items)
 
-2. `src/entries/index-revamp.js` reads both blocks via `readInitialDataFromDom()` and seeds
-   `homeQueryClient` before first render. The hero and curators row paint from seeded list data.
+   The template also preloads the two Latin font subsets the shell uses, because the text that
+   needs them renders only after React boots.
+
+2. `src/entries/index-revamp.js` reads the blocks via `readInitialDataFromDom()` and
+   `seedHomeQueryClient()` seeds `homeQueryClient` before first render. Every row paints from seeded
+   data, so the first load makes no list API calls and renders no skeleton rows (skeletons that
+   vanish when a response lands shift the layout). A block that is `null` or malformed is skipped and
+   its hook fetches normally.
 
 3. `useFeaturedMedia` and `useRecommendedMedia` hooks observe keys `['home','featured']` and
    `['home','recommended']`. On `staleTime` expiry or focus, they refetch from the API.
@@ -20,15 +28,17 @@ Modern-track home page: hero section + Featured by Curators row + admin-configur
    not part of the homepage entry: `utils/heroPlayerLoader.js` fetches it with a dynamic `import()` only when the
    viewer activates the poster, and the player mounts with autoplay so that first click still starts playback (#750).
 
-5. `useRecentMedia()` fetches `/api/v1/media?show=latest` for the Recent videos grid. This mirrors the legacy
-   homepage/latest feed while keeping initial hero rendering focused on server-injected featured data.
+5. `useRecentMedia()` observes `['home','recent']` for the Recent videos grid, seeded from
+   `#home-initial-data-latest` and refetched from `/api/v1/media?show=latest` on `staleTime` expiry. This mirrors
+   the legacy homepage/latest feed.
 
 ## Homepage playlist rows
 
 The legacy homepage lets admins configure playlist rows through `IndexPageFeatured`.
 The modern homepage now uses the same source:
 
-1. `useIndexFeaturedPlaylists()` fetches `/api/v1/indexfeatured`.
+1. `useIndexFeaturedPlaylists()` observes `['home','index-featured']`, seeded from
+   `#home-initial-data-index-featured` and refetched from `/api/v1/indexfeatured` on `staleTime` expiry.
 2. Each configured row fetches its returned `api_url` via `usePlaylistMedia(apiUrl)`.
 3. `normalizeMediaList()` accepts playlist detail envelopes via `playlist_media`, plus paginated `results`
    and bare arrays.

@@ -123,6 +123,34 @@ describe('HomePage', () => {
 		expect(document.querySelectorAll('h1')).toHaveLength(0);
 	});
 
+	it('renders playlist skeleton rows only while the index featured list is unseeded', async () => {
+		let resolveFetch;
+		vi.spyOn(globalThis, 'fetch').mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					resolveFetch = resolve;
+				})
+		);
+		homeQueryClient.removeQueries({ queryKey: HOME_QUERY_KEYS.indexFeatured });
+
+		render(<HomePage />);
+
+		// Two placeholder rows paint, then vanish when the API answers with no
+		// playlists, shifting everything below the hero (the CLS Lighthouse flags).
+		expect(document.querySelectorAll('section')).toHaveLength(2);
+		resolveFetch({ ok: true, json: async () => [] });
+		await waitFor(() => expect(document.querySelectorAll('section')).toHaveLength(0));
+	});
+
+	it('renders no playlist skeleton rows when the index featured list is seeded empty', () => {
+		const fetchSpy = vi.spyOn(globalThis, 'fetch');
+
+		render(<HomePage />);
+
+		expect(document.querySelectorAll('section')).toHaveLength(0);
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
 	it('renders HeroSection synchronously from seeded cache data', () => {
 		homeQueryClient.setQueryData(HOME_QUERY_KEYS.featured, [FEATURED_MEDIA]);
 		render(<HomePage />);

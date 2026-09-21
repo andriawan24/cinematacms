@@ -6,7 +6,7 @@ import { useFeaturedMedia } from './useFeaturedMedia';
 import { useIndexFeaturedPlaylists } from './useIndexFeaturedPlaylists';
 import { usePlaylistMedia } from './usePlaylistMedia';
 import { useRecentMedia } from './useRecentMedia';
-import { readInitialDataFromDom } from '../initialData';
+import { isMediaListPayload, readInitialDataFromDom, seedHomeQueryClient } from '../initialData';
 
 // ── readInitialDataFromDom ──────────────────────────────────────────────────
 
@@ -14,6 +14,8 @@ describe('readInitialDataFromDom', () => {
 	afterEach(() => {
 		document.getElementById('home-initial-data-featured')?.remove();
 		document.getElementById('home-initial-data-recommended')?.remove();
+		document.getElementById('home-initial-data-index-featured')?.remove();
+		document.getElementById('home-initial-data-latest')?.remove();
 	});
 
 	function injectScriptTag(id, content) {
@@ -47,6 +49,76 @@ describe('readInitialDataFromDom', () => {
 
 		const result = readInitialDataFromDom();
 		expect(result).toEqual({ featured, recommended });
+	});
+
+	it('reads the index-featured and latest blocks the server seeds for the lower rows', () => {
+		const indexFeatured = [{ title: 'Climate', api_url: '/api/v1/playlists/climate', url: '/view?pl=climate' }];
+		const latest = { results: [{ id: 3, title: 'Latest' }] };
+		injectScriptTag('home-initial-data-index-featured', JSON.stringify(indexFeatured));
+		injectScriptTag('home-initial-data-latest', JSON.stringify(latest));
+
+		expect(readInitialDataFromDom()).toEqual({ indexFeatured, latest });
+	});
+
+	it('reports a null block as present so a failed server build still counts as seeded markup', () => {
+		injectScriptTag('home-initial-data-latest', 'null');
+
+		expect(readInitialDataFromDom()).toEqual({ latest: null });
+	});
+});
+
+// ── seedHomeQueryClient ─────────────────────────────────────────────────────
+
+describe('seedHomeQueryClient', () => {
+	function makeSeedClient() {
+		return new QueryClient({ defaultOptions: { queries: { retry: false } } });
+	}
+
+	it('seeds every list-shaped block under its home query key', () => {
+		const client = makeSeedClient();
+		const featured = { results: [{ title: 'Featured' }] };
+		const recommended = [{ title: 'Recommended' }];
+		const indexFeatured = [];
+		const latest = { results: [{ title: 'Latest' }] };
+
+		seedHomeQueryClient(client, { featured, recommended, indexFeatured, latest });
+
+		expect(client.getQueryData(HOME_QUERY_KEYS.featured)).toBe(featured);
+		expect(client.getQueryData(HOME_QUERY_KEYS.recommended)).toBe(recommended);
+		expect(client.getQueryData(HOME_QUERY_KEYS.indexFeatured)).toBe(indexFeatured);
+		expect(client.getQueryData(HOME_QUERY_KEYS.recent)).toBe(latest);
+	});
+
+	it('leaves a null or malformed block unseeded so its hook fetches from the API', () => {
+		const client = makeSeedClient();
+
+		seedHomeQueryClient(client, {
+			featured: { results: [] },
+			recommended: undefined,
+			indexFeatured: null,
+			latest: { detail: 'Server error' },
+		});
+
+		expect(client.getQueryData(HOME_QUERY_KEYS.featured)).toEqual({ results: [] });
+		expect(client.getQueryData(HOME_QUERY_KEYS.recommended)).toBeUndefined();
+		expect(client.getQueryData(HOME_QUERY_KEYS.indexFeatured)).toBeUndefined();
+		expect(client.getQueryData(HOME_QUERY_KEYS.recent)).toBeUndefined();
+	});
+
+	it('is a no-op when the page carries no initial data', () => {
+		const client = makeSeedClient();
+
+		seedHomeQueryClient(client, null);
+
+		expect(client.getQueryCache().getAll()).toHaveLength(0);
+	});
+
+	it('accepts bare arrays and paginated envelopes only', () => {
+		expect(isMediaListPayload([])).toBe(true);
+		expect(isMediaListPayload({ results: [] })).toBe(true);
+		expect(isMediaListPayload(null)).toBe(false);
+		expect(isMediaListPayload({ results: null })).toBe(false);
+		expect(isMediaListPayload('[]')).toBe(false);
 	});
 });
 

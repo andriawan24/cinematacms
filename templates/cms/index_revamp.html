@@ -28,11 +28,19 @@
 <link rel="preload" as="image" href="{{ home_hero_preload_image }}" fetchpriority="high">
 {% endif %}
 
+{# Homepage text renders only after React boots, so without these hints the #}
+{# browser discovers the fonts late and swaps them in after the first paint. #}
+{# Preload the two Latin subsets the shell uses so they arrive with the CSS. #}
+<link rel="preload" as="font" type="font/woff2" href="{% static 'lib/Inter/inter-latin.woff2' %}" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="{% static 'lib/BarlowSemiCondensed/barlow-semi-condensed-latin-500.woff2' %}" crossorigin>
+
 {% endblock headermeta %}
 
 {% block modernpageimports %}
 {{ home_initial_featured|json_script:"home-initial-data-featured" }}
 {{ home_initial_recommended|json_script:"home-initial-data-recommended" }}
+{{ home_initial_index_featured|json_script:"home-initial-data-index-featured" }}
+{{ home_initial_latest|json_script:"home-initial-data-latest" }}
 {% vite_asset 'src/entries/index-revamp.js' %}
 {% endblock modernpageimports %}
 

@@ -1,9 +1,9 @@
 """
 Tests for the home page initial-data injection (U2).
 
-Verifies that the index_revamp view injects featured and recommended media
-payloads into the page via Django's json_script template tag, with correct
-JSON shape and XSS-safe escaping.
+Verifies that the index_revamp view injects the featured, recommended, latest
+and index-featured payloads into the page via Django's json_script template
+tag, with correct JSON shape and XSS-safe escaping, and preloads the shell fonts.
 """
 
 from datetime import timedelta
@@ -13,11 +13,12 @@ from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from files.models import EncodeProfile, Encoding, Media
+from files.models import EncodeProfile, Encoding, IndexPageFeatured, Media
 from files.query_cache import get_cached_result, get_media_list_cache_key
 from files.tests.helpers import (
     create_test_media,
     create_test_user,
+    extract_json_script_body,
     extract_json_script_payload,
     make_vite_loader_mock,
 )
@@ -29,7 +30,7 @@ from files.tests.helpers import (
     UI_VARIANT_ALLOWED=["legacy", "revamp"],
 )
 class IndexRevampInitialDataTest(TestCase):
-    """Home page must emit two json_script blocks with media payloads."""
+    """Home page must emit the json_script blocks the entry seeds its query cache from."""
 
     @classmethod
     def setUpTestData(cls):
@@ -52,12 +53,25 @@ class IndexRevampInitialDataTest(TestCase):
     def _get_revamp_response(self):
         return self.client.get("/", SERVER_NAME="localhost")
 
-    def _featured_payload(self):
+    def _payload(self, script_id):
         response = self._get_revamp_response()
         content = response.content.decode()
-        payload = extract_json_script_payload(content, "home-initial-data-featured")
-        self.assertIsNotNone(payload, "home-initial-data-featured script tag not found")
+        payload = extract_json_script_payload(content, script_id)
+        self.assertIsNotNone(payload, f"{script_id} script tag not found")
         return payload
+
+    def _featured_payload(self):
+        return self._payload("home-initial-data-featured")
+
+    def _create_index_featured(self, title, ordering, **kwargs):
+        slug = title.lower()
+        return IndexPageFeatured.objects.create(
+            title=title,
+            api_url=f"/api/v1/playlists/{slug}",
+            url=f"/view?pl={slug}",
+            ordering=ordering,
+            **kwargs,
+        )
 
     def _featured_results(self):
         return self._featured_payload()["results"]
@@ -262,6 +276,102 @@ class IndexRevampInitialDataTest(TestCase):
             self.assertIn("\\u003C", content)
         finally:
             media.delete()
+
+    def test_index_featured_payload_is_an_empty_list_when_no_rows_are_configured(self):
+        self.assertEqual(self._payload("home-initial-data-index-featured"), [])
+
+    def test_index_featured_payload_matches_the_api_and_skips_inactive_rows(self):
+        self._create_index_featured("Second", ordering=2)
+        self._create_index_featured("First", ordering=1, text="Curated <b>picks</b>")
+        self._create_index_featured("Hidden", ordering=0, active=False)
+
+        payload = self._payload("home-initial-data-index-featured")
+        api_payload = self.client.get("/api/v1/indexfeatured", SERVER_NAME="localhost").json()
+
+        self.assertEqual([row["title"] for row in payload], ["First", "Second"])
+        self.assertEqual(payload[0]["api_url"], "http://localhost/api/v1/playlists/first")
+        self.assertEqual(payload[0]["url"], "http://localhost/view?pl=first")
+        self.assertEqual(payload[0]["text"], "Curated <b>picks</b>")
+        self.assertEqual(payload, api_payload)
+
+    def test_index_featured_text_is_escaped_in_payload(self):
+        xss_text = '</script><script>alert("xss")</script>'
+        self._create_index_featured("Row", ordering=1, text=xss_text)
+
+        content = self._get_revamp_response().content.decode()
+
+        self.assertNotIn(xss_text, content)
+        self.assertNotIn("<", extract_json_script_body(content, "home-initial-data-index-featured"))
+        payload = extract_json_script_payload(content, "home-initial-data-index-featured")
+        self.assertEqual(payload[0]["text"], xss_text)
+
+    def test_latest_payload_lists_public_media_newest_first_in_slim_shape(self):
+        older = create_test_media(self.user)
+        newer = create_test_media(self.user)
+        private_media = create_test_media(self.user, state="private")
+        now = timezone.now()
+        Media.objects.filter(pk=self.media.pk).update(add_date=now - timedelta(days=3))
+        Media.objects.filter(pk=older.pk).update(add_date=now - timedelta(days=2))
+        Media.objects.filter(pk=newer.pk).update(add_date=now - timedelta(days=1))
+        Media.objects.filter(pk=private_media.pk).update(add_date=now)
+
+        payload = self._payload("home-initial-data-latest")
+        tokens = [item["friendly_token"] for item in payload["results"]]
+
+        self.assertEqual(tokens, [newer.friendly_token, older.friendly_token, self.media.friendly_token])
+        self.assertEqual(payload["count"], 3)
+        item = payload["results"][0]
+        self.assertIn("title", item)
+        self.assertIn("thumbnail_url", item)
+        self.assertIn("categories_info", item)
+        self.assertIn("duration", item)
+        self.assertNotIn("author_thumbnail", item)
+        self.assertNotIn("likes", item)
+        self.assertNotIn("reported_times", item)
+        self.assertNotIn("size", item)
+
+    def test_latest_payload_is_served_from_the_home_cache_on_repeat_requests(self):
+        first_payload = self._payload("home-initial-data-latest")
+        self.assertEqual(first_payload["results"][0]["friendly_token"], self.media.friendly_token)
+
+        with patch("files.views.MediaSerializer", side_effect=AssertionError("should use home cache")):
+            second_payload = self._payload("home-initial-data-latest")
+
+        self.assertEqual(second_payload, first_payload)
+
+    def test_latest_payload_includes_media_added_after_the_cache_was_warmed(self):
+        first_payload = self._payload("home-initial-data-latest")
+        self.assertEqual(len(first_payload["results"]), 1)
+
+        newer = create_test_media(self.user)
+
+        second_payload = self._payload("home-initial-data-latest")
+        self.assertEqual(second_payload["results"][0]["friendly_token"], newer.friendly_token)
+        self.assertEqual(len(second_payload["results"]), 2)
+
+    def test_latest_block_is_null_when_its_builder_fails(self):
+        with patch("files.views._get_home_latest_initial_data", side_effect=RuntimeError("boom")):
+            response = self._get_revamp_response()
+
+        content = response.content.decode()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(extract_json_script_body(content, "home-initial-data-latest").strip(), "null")
+        self.assertIsNotNone(extract_json_script_payload(content, "home-initial-data-featured"))
+        self.assertEqual(extract_json_script_payload(content, "home-initial-data-index-featured"), [])
+
+    def test_shell_fonts_are_preloaded_before_the_stylesheets(self):
+        content = self._get_revamp_response().content.decode()
+        inter_preload = (
+            '<link rel="preload" as="font" type="font/woff2" href="/static/lib/Inter/inter-latin.woff2" crossorigin>'
+        )
+        barlow_preload = (
+            '<link rel="preload" as="font" type="font/woff2" '
+            'href="/static/lib/BarlowSemiCondensed/barlow-semi-condensed-latin-500.woff2" crossorigin>'
+        )
+
+        self.assertIn(inter_preload, content)
+        self.assertIn(barlow_preload, content)
+        self.assertLess(content.index(inter_preload), content.index('href="/static/lib/Inter/inter.css"'))
 
     def test_lt_in_title_is_escaped(self):
         """A title containing '<' must appear escaped per json_script contract."""
