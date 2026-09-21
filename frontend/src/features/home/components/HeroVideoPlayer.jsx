@@ -23,6 +23,7 @@ export default function HeroVideoPlayer({
 	videoInfo = {},
 	poster = '',
 	subtitles = {},
+	autoplay = false,
 	className = DEFAULT_PLAYER_CLASS,
 }) {
 	const site = getSiteSettings();
@@ -44,7 +45,7 @@ export default function HeroVideoPlayer({
 					poster={poster}
 					previewSprite={null}
 					subtitlesInfo={getSubtitlesInfo(subtitles)}
-					enableAutoplay={false}
+					enableAutoplay={autoplay}
 					inEmbed={true}
 					hasTheaterMode={false}
 					hasNextLink={false}

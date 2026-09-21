@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import homeQueryClient, { HOME_QUERY_KEYS } from '../queryClient';
 import { HomePage } from './HomePage';
@@ -136,7 +136,8 @@ describe('HomePage', () => {
 
 		render(<HomePage />);
 
-		const player = screen.getByTestId('hero-video-player');
+		fireEvent.click(screen.getByRole('button', { name: 'Play Featured Film' }));
+		const player = await screen.findByTestId('hero-video-player');
 		expect(fetchSpy).not.toHaveBeenCalled();
 		expect(JSON.parse(player.dataset.sources)).toEqual([
 			{ src: 'https://example.com/featured-720.mp4', type: 'video/mp4' },

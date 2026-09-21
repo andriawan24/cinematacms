@@ -1,21 +1,31 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { HeroSection } from './HeroSection';
+import { loadHeroVideoPlayer } from '../utils/heroPlayerLoader';
 
 vi.mock('./HeroVideoPlayer', () => ({
-	default: function HeroVideoPlayerMock({ poster, className, sources = [], videoInfo = {} }) {
+	default: function HeroVideoPlayerMock({ poster, className, sources = [], videoInfo = {}, autoplay = false }) {
 		return (
 			<div
 				data-testid="hero-video-player"
 				data-poster={poster}
 				data-class-name={className}
+				data-autoplay={String(autoplay)}
 				data-sources={JSON.stringify(sources)}
 				data-video-info={JSON.stringify(videoInfo)}
 			/>
 		);
 	},
 }));
+
+// Keep the real loader (and its dynamic import of the mocked module) but make
+// it observable so tests can assert when it runs and inject one failed load.
+vi.mock('../utils/heroPlayerLoader', async (importOriginal) => {
+	const actual = await importOriginal();
+	return { ...actual, loadHeroVideoPlayer: vi.fn(actual.loadHeroVideoPlayer) };
+});
 
 const SAMPLE_MEDIA = {
 	title: 'Test Featured Video',
@@ -62,6 +72,16 @@ function renderHero(seededData, children) {
 	);
 }
 
+function getPlayButton(title = 'Test Featured Video') {
+	return screen.getByRole('button', { name: `Play ${title}` });
+}
+
+async function activateHero(title) {
+	const user = userEvent.setup();
+	await user.click(getPlayButton(title));
+	return screen.findByTestId('hero-video-player');
+}
+
 describe('HeroSection', () => {
 	afterEach(() => {
 		Object.defineProperty(window, 'ResizeObserver', {
@@ -74,6 +94,7 @@ describe('HeroSection', () => {
 			writable: true,
 			value: originalInnerWidth,
 		});
+		vi.mocked(loadHeroVideoPlayer).mockClear();
 		vi.restoreAllMocks();
 	});
 
@@ -123,14 +144,15 @@ describe('HeroSection', () => {
 	it('renders Card slot only when Player is omitted', () => {
 		renderHero([SAMPLE_MEDIA], <HeroSection.Card />);
 		expect(screen.getByRole('heading', { level: 2, name: 'Test Featured Video' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /^Play / })).toBeNull();
 		expect(screen.queryByTestId('hero-video-player')).toBeNull();
 	});
 
 	it('renders Player slot only when Card is omitted', () => {
 		renderHero([SAMPLE_MEDIA], <HeroSection.Player />);
-		expect(screen.getByTestId('hero-video-player')).toBeInTheDocument();
+		expect(getPlayButton()).toBeInTheDocument();
 		expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
-		expect(screen.queryByText('11:16')).not.toBeInTheDocument();
+		expect(screen.getByText('11:16')).toBeInTheDocument();
 	});
 
 	it('renders both Player and Card when composed together', () => {
@@ -141,7 +163,7 @@ describe('HeroSection', () => {
 				<HeroSection.Card />
 			</>
 		);
-		expect(screen.getByTestId('hero-video-player')).toBeInTheDocument();
+		expect(getPlayButton()).toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'Test Featured Video' })).toBeInTheDocument();
 	});
 
@@ -167,12 +189,12 @@ describe('HeroSection', () => {
 		const region = screen.getByRole('region', { name: 'Featured media' });
 		await waitFor(() => expect(region).toHaveClass('flex-row'));
 
-		const player = screen.getByTestId('hero-video-player');
-		expect(player.parentElement).toHaveClass('aspect-auto');
+		const frame = getPlayButton().parentElement;
+		expect(frame).toHaveClass('aspect-auto');
 		// The player frame keeps a fixed 16:9 height; the card uses the same value as a
 		// minHeight floor so the two columns match without the player letterboxing.
-		expect(player.parentElement).toHaveStyle({ height: '440px' });
-		expect(player.parentElement.parentElement).toHaveClass('flex-1');
+		expect(frame).toHaveStyle({ height: '440px' });
+		expect(frame.parentElement).toHaveClass('flex-1');
 		expect(screen.getByRole('article').parentElement).toHaveClass('shrink-0');
 		// The card width is fixed; its height is a floor (minHeight), so the card
 		// grows past the player height when the synopsis is long instead of clipping.
@@ -187,10 +209,94 @@ describe('HeroSection', () => {
 		expect(screen.getByRole('heading', { level: 2 })).toHaveClass('text-text-primary');
 	});
 
-	it('passes a full-height desktop player class to the player', () => {
+	it('passes a full-height desktop player class to the player', async () => {
 		renderHero([SAMPLE_MEDIA], <HeroSection.Player />);
-		const player = screen.getByTestId('hero-video-player');
+		const player = await activateHero();
 		expect(player).toHaveAttribute('data-class-name', expect.stringContaining('h-full'));
+	});
+
+	it('shows the poster as a play control and leaves the player module untouched until activation', () => {
+		renderHero([SAMPLE_MEDIA], <HeroSection.Player />);
+
+		const button = getPlayButton();
+		expect(button).toHaveAttribute('type', 'button');
+		expect(button).not.toHaveAttribute('aria-busy');
+		expect(within(button).getByRole('img', { name: 'Video poster' })).toHaveAttribute(
+			'src',
+			'https://example.com/thumb.jpg'
+		);
+		expect(screen.getByText('11:16')).toBeInTheDocument();
+		expect(screen.queryByTestId('hero-video-player')).not.toBeInTheDocument();
+		expect(loadHeroVideoPlayer).not.toHaveBeenCalled();
+	});
+
+	it('loads the player on the first click and mounts it with autoplay so that click starts playback', async () => {
+		renderHero([SAMPLE_MEDIA], <HeroSection.Player />);
+
+		const player = await activateHero();
+
+		expect(loadHeroVideoPlayer).toHaveBeenCalledTimes(1);
+		expect(player).toHaveAttribute('data-autoplay', 'true');
+		expect(player).toHaveAttribute('data-poster', 'https://example.com/thumb.jpg');
+		expect(JSON.parse(player.dataset.sources)).toEqual([
+			{ src: 'https://example.com/video.mp4', type: 'video/mp4' },
+		]);
+		expect(screen.queryByRole('button', { name: 'Play Test Featured Video' })).not.toBeInTheDocument();
+		expect(screen.queryByText('11:16')).not.toBeInTheDocument();
+	});
+
+	it('activates from the keyboard and moves focus into the player', async () => {
+		const user = userEvent.setup();
+		renderHero([SAMPLE_MEDIA], <HeroSection.Player />);
+
+		getPlayButton().focus();
+		await user.keyboard('{Enter}');
+
+		const player = await screen.findByTestId('hero-video-player');
+		// The mock renders no Video.js root, so focus lands on the player slot.
+		expect(player.parentElement).toHaveFocus();
+	});
+
+	it('marks the poster busy while the player module is in flight and ignores repeat clicks', async () => {
+		let resolveLoad;
+		vi.mocked(loadHeroVideoPlayer).mockImplementationOnce(
+			() =>
+				new Promise((resolve) => {
+					resolveLoad = resolve;
+				})
+		);
+		const user = userEvent.setup();
+		renderHero([SAMPLE_MEDIA], <HeroSection.Player />);
+
+		await user.click(getPlayButton());
+		expect(getPlayButton()).toHaveAttribute('aria-busy', 'true');
+		expect(loadHeroVideoPlayer).toHaveBeenCalledTimes(1);
+
+		await user.click(getPlayButton());
+		expect(loadHeroVideoPlayer).toHaveBeenCalledTimes(1);
+
+		await act(async () => {
+			resolveLoad({ default: () => <div data-testid="hero-video-player" /> });
+		});
+		expect(screen.getByTestId('hero-video-player')).toBeInTheDocument();
+	});
+
+	it('keeps the poster and retries when the player module fails to load', async () => {
+		vi.mocked(loadHeroVideoPlayer).mockRejectedValueOnce(new Error('offline'));
+		const user = userEvent.setup();
+		renderHero([SAMPLE_MEDIA], <HeroSection.Player />);
+
+		await user.click(getPlayButton());
+
+		expect(await screen.findByRole('status')).toHaveTextContent('Player failed to load. Try again.');
+		expect(getPlayButton()).not.toHaveAttribute('aria-busy');
+		expect(screen.queryByTestId('hero-video-player')).not.toBeInTheDocument();
+
+		await user.click(getPlayButton());
+
+		expect(await screen.findByTestId('hero-video-player')).toBeInTheDocument();
+		expect(screen.queryByRole('status')).not.toBeInTheDocument();
+		expect(loadHeroVideoPlayer).toHaveBeenCalledTimes(2);
 	});
 
 	it('renders the poster directly when the API does not provide hero playback', () => {
@@ -198,6 +304,7 @@ describe('HeroSection', () => {
 
 		renderHero([{ ...SAMPLE_MEDIA, hero_playback: undefined }], <HeroSection.Player />);
 
+		expect(screen.queryByRole('button', { name: /^Play / })).not.toBeInTheDocument();
 		expect(screen.queryByTestId('hero-video-player')).not.toBeInTheDocument();
 		expect(fetchSpy).not.toHaveBeenCalled();
 		expect(screen.getByRole('img', { name: 'Video poster' })).toHaveAttribute(
@@ -236,11 +343,17 @@ describe('HeroSection', () => {
 			</>
 		);
 
-		const player = await screen.findByTestId('hero-video-player');
+		const button = await screen.findByRole('button', { name: 'Play Detail Featured Video' });
 		expect(fetchSpy).toHaveBeenCalledWith('/api/v1/media/legacy-token');
+		expect(within(button).getByRole('img', { name: 'Video poster' })).toHaveAttribute(
+			'src',
+			'https://example.com/detail-poster.jpg'
+		);
+		expect(screen.getByRole('heading', { level: 2, name: 'Detail Featured Video' })).toBeInTheDocument();
+
+		const player = await activateHero('Detail Featured Video');
 		expect(player).toHaveAttribute('data-poster', 'https://example.com/detail-poster.jpg');
 		expect(JSON.parse(player.dataset.sources)).toEqual([{ src: '/media/detail-720.mp4', type: 'video/mp4' }]);
-		expect(screen.getByRole('heading', { level: 2, name: 'Detail Featured Video' })).toBeInTheDocument();
 	});
 
 	it('surfaces a retry action when legacy hero detail playback fails', async () => {
@@ -286,7 +399,7 @@ describe('HeroSection', () => {
 			<HeroSection.Player />
 		);
 
-		const player = screen.getByTestId('hero-video-player');
+		const player = await activateHero();
 		expect(fetchSpy).not.toHaveBeenCalled();
 		expect(JSON.parse(player.dataset.sources)).toEqual([
 			{ src: 'https://example.com/hero-video.mp4', type: 'video/mp4' },
@@ -316,7 +429,7 @@ describe('HeroSection', () => {
 			<HeroSection.Player />
 		);
 
-		const player = screen.getByTestId('hero-video-player');
+		const player = await activateHero();
 		expect(JSON.parse(player.dataset.sources)).toEqual([
 			{ src: 'https://example.com/1080p.mp4', type: 'video/mp4' },
 		]);
@@ -351,7 +464,7 @@ describe('HeroSection', () => {
 			<HeroSection.Player />
 		);
 
-		const player = screen.getByTestId('hero-video-player');
+		const player = await activateHero();
 		expect(fetchSpy).not.toHaveBeenCalled();
 		expect(JSON.parse(player.dataset.sources)).toEqual([
 			{ src: '/media/hls/master.m3u8?v=123', type: 'application/x-mpegURL' },
@@ -390,7 +503,7 @@ describe('HeroSection', () => {
 				<HeroSection.Player />
 			);
 
-			const player = screen.getByTestId('hero-video-player');
+			const player = await activateHero();
 			expect(JSON.parse(player.dataset.sources)).toEqual([
 				{ src: '/media/video-360.mp4?v=123', type: 'video/mp4' },
 			]);
@@ -447,18 +560,6 @@ describe('HeroSection', () => {
 		expect(screen.getByText('<img src=x onerror=alert(1)>')).toBeInTheDocument();
 	});
 
-	it('renders the player immediately when playback sources are available', () => {
-		renderHero(
-			[SAMPLE_MEDIA],
-			<>
-				<HeroSection.Player />
-				<HeroSection.Card />
-			</>
-		);
-		expect(screen.getByTestId('hero-video-player')).toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: /Play Test Featured Video/ })).not.toBeInTheDocument();
-	});
-
 	it('uses the SVG-to-component pipeline for the poster play affordance', async () => {
 		const source = await import('./HeroSection.jsx?raw');
 		expect(source.default).toMatch(/shared\/icons\/hero-play-button\.svg\?react/);
@@ -466,11 +567,5 @@ describe('HeroSection', () => {
 		expect(source.default).not.toContain('top-1/2');
 		expect(source.default).not.toMatch(/<svg\b/);
 		expect(source.default).not.toMatch(/PLAY_CIRCLE_PATH/);
-	});
-
-	it('HeroVideoPlayer is imported eagerly so the first click reaches VideoJS', async () => {
-		const source = await import('./HeroSection.jsx?raw');
-		expect(source.default).toMatch(/import\s+HeroVideoPlayer\s+from\s+['"]\.\/HeroVideoPlayer['"]/);
-		expect(source.default).not.toContain('lazy');
 	});
 });

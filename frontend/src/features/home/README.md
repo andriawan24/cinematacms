@@ -16,7 +16,9 @@ Modern-track home page: hero section + Featured by Curators row + admin-configur
 
 4. `HeroSection.Player` uses list playback data when present. When the featured list item has no playback payload,
    it fetches the legacy media detail endpoint derived from `url`, `friendly_token`, `uid`, or `id` before mounting
-   the player.
+   the player. The player module itself (legacy `VideoPlayer`, `@mediacms/media-player`, Video.js and their CSS) is
+   not part of the homepage entry: `utils/heroPlayerLoader.js` fetches it with a dynamic `import()` only when the
+   viewer activates the poster, and the player mounts with autoplay so that first click still starts playback (#750).
 
 5. `useRecentMedia()` fetches `/api/v1/media?show=latest` for the Recent videos grid. This mirrors the legacy
    homepage/latest feed while keeping initial hero rendering focused on server-injected featured data.
@@ -40,7 +42,7 @@ The modern homepage now uses the same source:
 HomePage (QueryClientProvider)
 └── HomePageContent
     ├── HeroSection (compound, reads useFeaturedMedia)
-    │   ├── HeroSection.Player  (HeroVideoPlayer → @mediacms/media-player)
+    │   ├── HeroSection.Player  (poster play control → HeroVideoPlayer on activation → @mediacms/media-player)
     │   └── HeroSection.Card   (title, meta, ExpandableText)
     ├── FeaturedByCuratorsRow  (thin wrapper → SectionRow + useRecommendedMedia)
     ├── HomepagePlaylistRow × N (thin wrapper → SectionRow + usePlaylistMedia)

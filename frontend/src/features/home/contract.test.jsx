@@ -3,11 +3,13 @@
  *
  * These tests fail if:
  * - forwardRef is introduced into any home component
- * - HeroVideoPlayer is hidden behind React.lazy, reintroducing the two-click hero activation bug
+ * - HeroSection imports HeroVideoPlayer statically, putting Video.js back on the homepage critical
+ *   path (#750), or mounts the loaded player without autoplay, reintroducing the two-click hero bug
  * - homepage playlist constants are defined inside the HomePage render function
  * - SectionRow or Carousel gain boolean-mode props (show*, hide*, is*Mode, as*)
  */
 import { describe, it, expect } from 'vitest';
+import heroPlayerLoaderSource from './utils/heroPlayerLoader.js?raw';
 
 const HOME_SOURCES = import.meta.glob('./components/*.jsx', { eager: true, query: '?raw', import: 'default' });
 const allSourceText = Object.entries(HOME_SOURCES).map(([path, src]) => ({ path, src }));
@@ -26,17 +28,23 @@ describe('Architecture contract — no forwardRef', () => {
 	});
 });
 
-describe('Architecture contract — eager hero player', () => {
-	it('HeroSection.jsx imports HeroVideoPlayer statically so the first click reaches VideoJS', () => {
+describe('Architecture contract — activation-gated hero player', () => {
+	it('HeroSection.jsx does not import HeroVideoPlayer statically, keeping Video.js off the first paint', () => {
 		const { src } = findSource('HeroSection') ?? {};
 		expect(src).toBeDefined();
-		expect(src).toMatch(/import\s+HeroVideoPlayer\s+from\s+['"]\.\/HeroVideoPlayer['"]/);
+		expect(src).not.toMatch(/import\s+HeroVideoPlayer\s+from\s+['"]\.\/HeroVideoPlayer['"]/);
+		expect(src).not.toMatch(/lazy\(/);
+		expect(src).toMatch(/loadHeroVideoPlayer\(\)/);
 	});
 
-	it('HeroSection.jsx does not lazy-load HeroVideoPlayer behind a poster click', () => {
+	it('the hero player module is reachable only through a dynamic import', () => {
+		expect(heroPlayerLoaderSource).toMatch(/import\(['"]\.\.\/components\/HeroVideoPlayer['"]\)/);
+	});
+
+	it('HeroSection.jsx mounts the loaded player with autoplay so the first click still plays', () => {
 		const { src } = findSource('HeroSection') ?? {};
 		expect(src).toBeDefined();
-		expect(src).not.toMatch(/lazy\(\s*\(\)\s*=>\s*import\(['"]\.\/HeroVideoPlayer['"]\)/);
+		expect(src).toMatch(/<HeroVideoPlayer[\s\S]*?\bautoplay\b[\s\S]*?\/>/);
 	});
 });
 

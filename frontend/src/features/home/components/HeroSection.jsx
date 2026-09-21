@@ -7,7 +7,7 @@ import { getHeroDetailUrl, hasPlaybackPayload, mergeHeroDetail, getHeroPlayback 
 import { HOME_QUERY_KEYS } from '../queryClient';
 import { cn } from '../../shared/utils/classNames';
 import { HeroMediaCard, HeroMediaCardSkeleton } from './HeroMediaCard';
-import HeroVideoPlayer from './HeroVideoPlayer';
+import { loadHeroVideoPlayer } from '../utils/heroPlayerLoader';
 import HeroPlayButtonIcon from '../../shared/icons/hero-play-button.svg?react';
 
 const HeroContext = createContext(null);
@@ -152,10 +152,13 @@ function useHeroDesktopLayout() {
 	return { rootRef, isDesktopLayout, desktopMetrics };
 }
 
-function PlayAffordance() {
+function PlayAffordance({ isLoading = false }) {
 	return (
 		<div
-			className="pointer-events-none absolute bottom-12 left-12 z-10 flex size-[72px] items-center justify-center max-[425px]:bottom-6 max-[425px]:left-6 max-[425px]:size-12"
+			className={cn(
+				'pointer-events-none absolute bottom-12 left-12 z-10 flex size-[72px] items-center justify-center max-[425px]:bottom-6 max-[425px]:left-6 max-[425px]:size-12',
+				isLoading ? 'animate-pulse motion-reduce:animate-none' : ''
+			)}
 			aria-hidden="true"
 		>
 			<HeroPlayButtonIcon className="size-[81.25%] text-site-player-accent" focusable="false" />
@@ -175,7 +178,7 @@ function DurationBadge({ value }) {
 	);
 }
 
-function HeroPosterFallback({ src }) {
+function HeroPosterFallback({ src, isLoading = false }) {
 	return (
 		<>
 			{src ? (
@@ -189,8 +192,103 @@ function HeroPosterFallback({ src }) {
 					fetchPriority="high"
 				/>
 			) : null}
-			<PlayAffordance />
+			<PlayAffordance isLoading={isLoading} />
 		</>
+	);
+}
+
+const ACTIVATOR_CLASS =
+	'absolute inset-0 z-10 block h-full w-full cursor-pointer border-0 bg-transparent p-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring-focus';
+const PLAYER_SLOT_CLASS =
+	'h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring-focus';
+const LOAD_FAILED_CLASS =
+	'body-body-12-medium pointer-events-none absolute bottom-2 right-2 z-20 rounded-[2px] bg-bg-overlay-dark/80 px-2 py-[2px] leading-[13.5px] text-text-on-chrome';
+
+function HeroPlayerActivator({ poster, title, duration, status, onActivate }) {
+	const isLoading = status === 'loading';
+
+	return (
+		<>
+			<button
+				type="button"
+				className={ACTIVATOR_CLASS}
+				aria-label={title ? `Play ${title}` : 'Play featured video'}
+				aria-busy={isLoading || undefined}
+				onClick={onActivate}
+			>
+				<HeroPosterFallback src={poster} isLoading={isLoading} />
+			</button>
+			{status === 'failed' ? (
+				<p role="status" className={LOAD_FAILED_CLASS}>
+					Player failed to load. Try again.
+				</p>
+			) : (
+				<DurationBadge value={duration} />
+			)}
+		</>
+	);
+}
+
+// The poster is the LCP image and paints from the seeded featured payload. The
+// player module (legacy VideoPlayer, media-player, Video.js and their CSS) is
+// fetched only when the viewer activates the poster, and mounts with autoplay
+// so that first click still starts playback (issue #750). The caller keys this
+// component by the playback source so a new hero starts from the poster again.
+function HeroPlayerSlot({ poster, title, duration, sources, videoInfo, subtitles }) {
+	const slotRef = useRef(null);
+	const restoreFocusRef = useRef(false);
+	const [player, setPlayer] = useState({ status: 'idle', Component: null });
+
+	function activate(event) {
+		if (player.status === 'loading') return;
+
+		// The poster button unmounts once the player renders. Remember whether it
+		// held focus so keyboard users land inside the player instead of on <body>.
+		restoreFocusRef.current = document.activeElement === event.currentTarget;
+		setPlayer({ status: 'loading', Component: null });
+		loadHeroVideoPlayer().then(
+			(module) => setPlayer({ status: 'ready', Component: module.default }),
+			() => setPlayer({ status: 'failed', Component: null })
+		);
+	}
+
+	useEffect(() => {
+		if (player.status !== 'ready' || !restoreFocusRef.current) return;
+
+		restoreFocusRef.current = false;
+		const slot = slotRef.current;
+		// Video.js gives its root element tabindex="-1" for keyboard shortcuts.
+		const target = slot?.querySelector('.video-js[tabindex]') ?? slot;
+		target?.focus({ preventScroll: true });
+	}, [player.status]);
+
+	if (player.status !== 'ready') {
+		return (
+			<HeroPlayerActivator
+				poster={poster}
+				title={title}
+				duration={duration}
+				status={player.status}
+				onActivate={activate}
+			/>
+		);
+	}
+
+	const { Component: HeroVideoPlayer } = player;
+
+	return (
+		<div ref={slotRef} tabIndex={-1} className={PLAYER_SLOT_CLASS}>
+			<HeroPlayerErrorBoundary fallback={<HeroPosterFallback src={poster} />}>
+				<HeroVideoPlayer
+					className={PLAYER_CLASS}
+					sources={sources}
+					videoInfo={videoInfo}
+					poster={poster}
+					autoplay
+					subtitles={subtitles}
+				/>
+			</HeroPlayerErrorBoundary>
+		</div>
 	);
 }
 
@@ -224,17 +322,15 @@ function Player() {
 				style={heroPlayerFrameStyle(desktopMetrics)}
 			>
 				{playback.sources.length ? (
-					<HeroPlayerErrorBoundary fallback={<HeroPosterFallback src={poster} />} key={playerKey}>
-						<HeroVideoPlayer
-							key={playerKey}
-							className={PLAYER_CLASS}
-							sources={playback.sources}
-							videoInfo={playback.videoInfo}
-							poster={poster}
-							preload="none"
-							subtitles={subtitlesPayload}
-						/>
-					</HeroPlayerErrorBoundary>
+					<HeroPlayerSlot
+						key={playerKey}
+						poster={poster}
+						title={media.title}
+						duration={duration}
+						sources={playback.sources}
+						videoInfo={playback.videoInfo}
+						subtitles={subtitlesPayload}
+					/>
 				) : (
 					<>
 						<HeroPosterFallback src={poster} />
