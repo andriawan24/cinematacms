@@ -37,6 +37,7 @@ from imagekit.models.fields.files import ProcessedImageFieldFile
 from imagekit.processors import ResizeToFit
 from mptt.models import MPTTModel, TreeForeignKey
 
+from cms.error_tracking import capture_unexpected_exception
 from cms.observability import inject_trace_headers
 from users.validators import validate_internal_html
 
@@ -1188,12 +1189,13 @@ class Media(models.Model):
                 priority=priority,
                 headers=inject_trace_headers({"enqueued_at": time.time()}),
             )
-        except Exception:
+        except Exception as error:
             logger.exception(
                 "Failed to dispatch encoding task for %s (encoding %d)",
                 self.friendly_token,
                 encoding.id,
             )
+            capture_unexpected_exception(error)
             Encoding.objects.filter(id=encoding.id).update(task_dispatched=False)
             return False
         return True
