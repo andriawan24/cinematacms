@@ -13,6 +13,11 @@ Modern-track home page: hero section + Featured by Curators row + admin-configur
    The template also preloads the two Latin font subsets the shell uses, because the text that
    needs them renders only after React boots.
 
+   The modern homepage replaces the legacy global `styles.scss` bundle with
+   `modern-foundation.scss`. The smaller foundation keeps the shared design tokens, normalization,
+   page defaults, and top-message behavior needed by the React shell without blocking first paint
+   on legacy component rules that the modern homepage does not use.
+
 2. `src/entries/index-revamp.js` reads the blocks via `readInitialDataFromDom()` and
    `seedHomeQueryClient()` seeds `homeQueryClient` before first render. Every row paints from seeded
    data, so the first load makes no list API calls and renders no skeleton rows (skeletons that

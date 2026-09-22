@@ -40,9 +40,11 @@ class IndexRevampInitialDataTest(TestCase):
     def setUp(self):
         super().setUp()
         cache.clear()
+        self.vite_loader = make_vite_loader_mock()
+        self.vite_loader.generate_vite_asset_url.side_effect = lambda path, *_args, **_kwargs: f"/static/{path}"
         self._vite_patcher = patch(
             "django_vite.core.asset_loader.DjangoViteAssetLoader.instance",
-            return_value=make_vite_loader_mock(),
+            return_value=self.vite_loader,
         )
         self._vite_patcher.start()
 
@@ -100,6 +102,12 @@ class IndexRevampInitialDataTest(TestCase):
 
         self.assertNotContains(response, "lib/video-js/7.20.2/video.min.js")
         self.assertNotContains(response, "lib/video-js/7.20.2/video-js.min.css")
+
+    def test_revamp_home_uses_modern_foundation_without_legacy_global_styles(self):
+        response = self._get_revamp_response()
+
+        self.assertContains(response, "/static/src/static/css/modern-foundation.scss")
+        self.assertNotContains(response, "/static/src/static/css/styles.scss")
 
     def test_featured_payload_is_valid_json(self):
         parsed = self._featured_payload()

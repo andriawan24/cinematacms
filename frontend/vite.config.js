@@ -107,6 +107,7 @@ export default defineConfig({
 				auth: 'src/entries/auth.js',
 				signout: 'src/entries/signout.js',
 				toast: 'src/entries/toast.js',
+				'modern-foundation': 'src/static/css/modern-foundation.scss',
 				tailwinds: 'src/static/css/tailwind.css',
 				styles: 'src/static/css/styles.scss',
 				index: 'src/entries/index.js',

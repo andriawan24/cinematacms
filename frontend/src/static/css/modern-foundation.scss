@@ -1,0 +1,85 @@
+// The revamp homepage needs the shared theme variables and browser defaults,
+// but not the legacy page/component rules bundled by styles.scss.
+@import './config/index.scss';
+@import 'normalize.css/normalize.css';
+
+html {
+	height: 100%;
+}
+
+body,
+body * {
+	box-sizing: border-box;
+
+	&::after,
+	&::before {
+		box-sizing: border-box;
+	}
+}
+
+body {
+	min-height: 100%;
+	color: var(--body-text-color);
+	background-color: var(--body-bg-color);
+	font-family: Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+body[data-ui-variant='revamp'] {
+	// The modern desktop topbar is 90px tall. tailwind.css overrides this to
+	// 124px below 640px for its two-row mobile layout.
+	--header-height: 90px !important;
+}
+
+button {
+	cursor: pointer;
+}
+
+// The top message arrives from its API after the shell mounts. Keep it out of
+// normal flow, then move the modern content with a transform so revealing the
+// message does not create a layout shift. The topbar and sidebar already use
+// --top-message-height for their fixed offsets.
+.top-message {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	z-index: 1000;
+	display: flex;
+	justify-content: center;
+	width: auto;
+	padding: 14px 16px;
+	color: var(--cinemata-neutral-50);
+	text-align: center;
+	background-color: var(--bg-secondary, var(--cinemata-sunset-horizon-700));
+}
+
+.top-message--close {
+	position: absolute;
+	top: 13px;
+	right: 16px;
+	align-self: end;
+	border: 0;
+	background: none;
+}
+
+.top-message--close-icon {
+	width: 16px;
+	height: 16px;
+	color: white;
+}
+
+.top-message--text {
+	padding-right: 24px;
+	font-size: 14px;
+	line-height: 16px;
+}
+
+.top-message--text a {
+	color: inherit;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.top-message-body .app-layout__content {
+	transform: translateY(var(--top-message-height, 43px));
+}

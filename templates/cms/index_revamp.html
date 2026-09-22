@@ -2,6 +2,10 @@
 {% load static %}
 {% load django_vite %}
 
+{% block global_stylesheet %}
+<link rel="stylesheet" href="{% vite_asset_url 'src/static/css/modern-foundation.scss' %}">
+{% endblock global_stylesheet %}
+
 {% block headermeta %}
 
 <meta name="description" content="Cinemata is a platform for social and environmental films about the Asia-Pacific. The open-source video website highlights essential yet underheard stories, increasing filmmakers' reach, engagement, and impact.">
