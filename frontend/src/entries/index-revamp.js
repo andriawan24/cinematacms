@@ -1,4 +1,4 @@
-import { renderPage } from '../static/js/_helpers.js';
+import { renderModernPage } from '../features/layout/renderModernPage';
 import { HomePage } from '../features/home';
 import homeQueryClient from '../features/home/queryClient';
 import { readInitialDataFromDom, seedHomeInitialData } from '../features/home/initialData';
@@ -6,4 +6,4 @@ import { readInitialDataFromDom, seedHomeInitialData } from '../features/home/in
 const initialData = readInitialDataFromDom();
 seedHomeInitialData(homeQueryClient, initialData);
 
-renderPage('page-home', HomePage);
+renderModernPage('page-home', HomePage);

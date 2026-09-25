@@ -8,6 +8,8 @@
  * - SectionRow or Carousel gain boolean-mode props (show*, hide*, is*Mode, as*)
  */
 import { describe, it, expect } from 'vitest';
+import indexRevampSource from '../../entries/index-revamp.js?raw';
+import topbarSource from '../layout/topbar/Topbar.jsx?raw';
 
 const HOME_SOURCES = import.meta.glob('./components/*.jsx', { eager: true, query: '?raw', import: 'default' });
 const allSourceText = Object.entries(HOME_SOURCES).map(([path, src]) => ({ path, src }));
@@ -37,6 +39,19 @@ describe('Architecture contract — eager hero player', () => {
 		const { src } = findSource('HeroSection') ?? {};
 		expect(src).toBeDefined();
 		expect(src).not.toMatch(/lazy\(\s*\(\)\s*=>\s*import\(['"]\.\/HeroVideoPlayer['"]\)/);
+	});
+});
+
+describe('Architecture contract — topbar stylesheet compatibility', () => {
+	it('loads the complete Tailwind entry used by topbar messages and controls', () => {
+		expect(topbarSource).toContain('static/css/tailwind.css');
+	});
+});
+
+describe('Architecture contract — modern renderer boundary', () => {
+	it('the revamp homepage does not load the mixed legacy render helper', () => {
+		expect(indexRevampSource).toContain("from '../features/layout/renderModernPage'");
+		expect(indexRevampSource).not.toContain("from '../static/js/_helpers.js'");
 	});
 });
 
