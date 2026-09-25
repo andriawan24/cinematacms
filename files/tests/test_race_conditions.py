@@ -497,6 +497,7 @@ class StaleInstanceFileFieldSaveTest(TestCase):
         self.assertEqual(self._stored_title(stale), "changed")
         stored = Media.objects.get(pk=stale.pk)
         self.assertTrue(stored.sprites.name)
+        self.assertTrue(stored.sprites.storage.exists(stored.sprites.name))
         self.assertEqual(stored.sprite_num_secs, result["sprite_num_secs"])
 
     def test_set_thumbnail_does_not_revert_unrelated_column(self):
@@ -508,7 +509,9 @@ class StaleInstanceFileFieldSaveTest(TestCase):
         self.assertEqual(self._stored_title(stale), "changed")
         stored = Media.objects.get(pk=stale.pk)
         self.assertTrue(stored.thumbnail.name)
+        self.assertTrue(stored.thumbnail.storage.exists(stored.thumbnail.name))
         self.assertTrue(stored.poster.name)
+        self.assertTrue(stored.poster.storage.exists(stored.poster.name))
 
     def test_produce_thumbnails_from_video_does_not_revert_unrelated_column(self):
         """files/models.py produce_thumbnails_from_video() -- thumbnail + poster."""
@@ -527,7 +530,9 @@ class StaleInstanceFileFieldSaveTest(TestCase):
         self.assertEqual(self._stored_title(stale), "changed")
         stored = Media.objects.get(pk=stale.pk)
         self.assertTrue(stored.thumbnail.name)
+        self.assertTrue(stored.thumbnail.storage.exists(stored.thumbnail.name))
         self.assertTrue(stored.poster.name)
+        self.assertTrue(stored.poster.storage.exists(stored.poster.name))
 
     def test_uploaded_thumbnail_save_does_not_revert_unrelated_column(self):
         """files/models.py Media.save() -- the uploaded_poster -> uploaded_thumbnail write."""
@@ -548,6 +553,7 @@ class StaleInstanceFileFieldSaveTest(TestCase):
         self.assertEqual(self._stored_title(stale), "changed")
         stored = Media.objects.get(pk=media.pk)
         self.assertTrue(stored.uploaded_thumbnail.name)
+        self.assertTrue(stored.uploaded_thumbnail.storage.exists(stored.uploaded_thumbnail.name))
 
     def test_every_filefield_on_media_is_safe_under_the_default_save(self):
         """FieldFile.save()'s default save=True must not revert a stale row.
@@ -810,3 +816,211 @@ class StaleInstanceFileFieldSaveTest(TestCase):
         self.assertTrue(notify_users.called, "published notification did not fire for a persisted state")
         self.assertTrue(invalidate.called, "permission cache was not invalidated for a persisted state")
         self.assertEqual(Media.objects.get(pk=media.pk).state, "public")
+
+    def _findable(self, media, word):
+        from django.contrib.postgres.search import SearchQuery
+
+        return Media.objects.filter(pk=media.pk, search=SearchQuery(word, config="simple")).exists()
+
+    def test_scoped_save_indexes_search_from_the_stored_row(self):
+        """A scoped save must not index the stale instance's text.
+
+        The media_save receiver rebuilds the search vector with its own UPDATE,
+        outside update_fields. Built from a stale instance, it made the row
+        findable by a title it no longer had while the title column itself was
+        correct.
+        """
+        from django.core.files.base import ContentFile
+
+        writes = [
+            ("file write", lambda stale: stale.sprites.save("sprites.jpg", ContentFile(b"sprite"))),
+            ("explicit update_fields", lambda stale: stale.save(update_fields=["encoding_status"])),
+        ]
+        for label, write in writes:
+            with self.subTest(write=label):
+                media = create_test_media(self.user, title="aardvark")
+                stale = Media.objects.get(pk=media.pk)
+                fresh = Media.objects.get(pk=media.pk)
+                fresh.title = "buffalo"
+                fresh.save()
+
+                write(stale)
+
+                self.assertTrue(self._findable(media, "buffalo"), "row not findable by its stored title")
+                self.assertFalse(self._findable(media, "aardvark"), "row still findable by a title it no longer has")
+
+    def test_scoped_save_still_indexes_tags_added_since_the_last_save(self):
+        """Tags are added after the edit form's save and reach the index on the next save.
+
+        That next save is often a scoped pipeline write, so a scoped save must
+        keep rebuilding the vector rather than skip it.
+        """
+        from files.models import Tag
+
+        media = create_test_media(self.user, title="original")
+        media.tags.add(Tag.objects.create(title="zeppelin", user=self.user))
+        self.assertFalse(self._findable(media, "zeppelin"))
+
+        Media.objects.get(pk=media.pk).save(update_fields=["encoding_status"])
+
+        self.assertTrue(self._findable(media, "zeppelin"))
+
+    def test_playlist_composites_follow_the_state_a_save_persists(self):
+        """Playlist composites are rebuilt only when the stored state changes."""
+        from django.core.files.base import ContentFile
+
+        from files.models import Playlist, PlaylistMedia
+
+        cases = [
+            ("file write, state unwritten", lambda m: m.sprites.save("sprites.jpg", ContentFile(b"s")), False),
+            ("scoped save of state", lambda m: m.save(update_fields=["state"]), True),
+            ("full save", lambda m: m.save(), True),
+        ]
+        for label, write, expected in cases:
+            with self.subTest(write=label):
+                media = create_test_media(self.user, title="original", state="private")
+                playlist = Playlist.objects.create(user=self.user, title="playlist")
+                PlaylistMedia.objects.create(playlist=playlist, media=media)
+                fresh = Media.objects.get(pk=media.pk)
+                fresh.state = "public"
+
+                with (
+                    patch("files.models.delete_composite_thumbnail") as delete_composite,
+                    patch("files.models.invalidate_playlist_cache") as invalidate_playlist,
+                ):
+                    write(fresh)
+
+                stored_state = Media.objects.get(pk=media.pk).state
+                self.assertEqual(stored_state, "public" if expected else "private")
+                self.assertEqual(delete_composite.called, expected)
+                self.assertEqual(invalidate_playlist.called, expected)
+
+    def test_featured_follows_the_featured_a_save_persists(self):
+        """The featured receivers act only when a save writes featured.
+
+        track_featured_change compares the stored row with the instance. A
+        stale instance still holding featured=True made a scoped file write look
+        like "just featured", so it re-featured a media an admin had unfeatured
+        in the meantime.
+        """
+        from django.core.files.base import ContentFile
+
+        from files.models import FeaturedVideo
+
+        def stale_file_write_after_unfeature(media):
+            stale = Media.objects.get(pk=media.pk)
+            unfeatured = Media.objects.get(pk=media.pk)
+            unfeatured.featured = False
+            unfeatured.save(update_fields=["featured"])
+            stale.sprites.save("sprites.jpg", ContentFile(b"sprite"))
+
+        def feature_with(**save_kwargs):
+            def write(media):
+                fresh = Media.objects.get(pk=media.pk)
+                fresh.featured = True
+                fresh.save(**save_kwargs)
+
+            return write
+
+        cases = [
+            ("stale file write after unfeature", True, stale_file_write_after_unfeature, False),
+            ("feature via update_fields", False, feature_with(update_fields=["featured"]), True),
+            ("feature via full save", False, feature_with(), True),
+        ]
+        for label, initially_featured, write, expected in cases:
+            with self.subTest(write=label):
+                media = create_test_media(self.user, title="original", featured=initially_featured)
+
+                write(media)
+
+                stored = Media.objects.get(pk=media.pk)
+                self.assertEqual(stored.featured, expected)
+                self.assertEqual(FeaturedVideo.objects.filter(media=media).exists(), expected)
+
+    def test_file_writes_still_advance_edit_date(self):
+        """A save that writes a file column must advance edit_date.
+
+        media_version versions the file URLs (thumbnail, poster, sprites) off
+        edit_date, and feeds and "last updated" sorting read it too. Before
+        #841 every file write was a full save, which advanced it. The scoped
+        saves have to name it, since Django only sets an auto_now field that
+        update_fields includes. A scoped save that writes no file column keeps
+        its old behaviour and leaves edit_date alone.
+        """
+        from django.core.files.base import ContentFile
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from files.sprites import generate_sprite_for_media
+
+        def fake_run(command, **kwargs):
+            with open(command[-1], "wb") as out:
+                out.write(_jpeg_bytes())
+            return {"out": "", "error": ""}
+
+        def sprites_call_site(stale):
+            with (
+                patch("files.sprites.run_command", side_effect=fake_run),
+                patch("files.sprites.get_file_type", return_value="image"),
+            ):
+                self.assertTrue(generate_sprite_for_media(stale)["ok"])
+
+        def produce_thumbnails_call_site(stale):
+            with patch("files.helpers.run_command", side_effect=fake_run):
+                stale.produce_thumbnails_from_video()
+
+        def uploaded_thumbnail_call_site(stale):
+            stale.uploaded_poster = SimpleUploadedFile("poster.jpg", _jpeg_bytes(), content_type="image/jpeg")
+            stale.save(update_fields=["uploaded_poster"])
+
+        def default_filefield_delete(stale):
+            stale.sprites.save("sprites.jpg", ContentFile(b"sprite"), save=False)
+            stale.sprites.delete()
+
+        def thumbnail_regeneration(stale):
+            stale.thumbnail_time = 5
+            with patch.object(Media, "set_thumbnail", return_value=True):
+                stale.save(update_fields=["thumbnail_time"])
+
+        cases = [
+            ("sprites call site", {"duration": 20}, sprites_call_site, True),
+            ("set_thumbnail call site", {"media_type": "image"}, lambda s: s.set_thumbnail(force=True), True),
+            ("produce_thumbnails_from_video call site", {}, produce_thumbnails_call_site, True),
+            ("uploaded_thumbnail call site", {}, uploaded_thumbnail_call_site, True),
+            ("default FieldFile.save", {}, lambda s: s.sprites.save("sprites.jpg", ContentFile(b"sprite")), True),
+            ("default FieldFile.delete", {}, default_filefield_delete, True),
+            ("thumbnail regeneration", {}, thumbnail_regeneration, True),
+            ("scoped save without a file column", {}, lambda s: s.save(update_fields=["encoding_status"]), False),
+        ]
+        for label, media_kwargs, write, advances in cases:
+            with self.subTest(write=label):
+                stale = self._stale_instance_with_concurrent_update(**media_kwargs)
+                earlier = timezone.now() - timedelta(days=1)
+                Media.objects.filter(pk=stale.pk).update(edit_date=earlier)
+
+                write(stale)
+
+                stored = Media.objects.filter(pk=stale.pk).values_list("edit_date", flat=True).get()
+                if advances:
+                    self.assertGreater(stored, earlier)
+                else:
+                    self.assertEqual(stored, earlier)
+                self.assertEqual(self._stored_title(stale), "changed")
+
+    def test_file_fields_list_names_every_filefield_on_media(self):
+        """Media.FILE_FIELDS must name every file field on the model.
+
+        Media.save() adds edit_date to a scoped save that writes one of these
+        columns. A file field added later but left out of the list would stop
+        advancing edit_date on its writes, and its versioned URL would keep
+        serving the old file. The fields come from _meta so a new one fails here.
+        """
+        from django.db import models as django_models
+
+        file_fields = {f.name for f in Media._meta.get_fields() if isinstance(f, django_models.FileField)}
+        # Guard against the introspection silently matching nothing.
+        self.assertGreaterEqual(len(file_fields), 6, "expected Media to still carry its file fields")
+        self.assertEqual(
+            Media.FILE_FIELDS,
+            file_fields,
+            "Media.FILE_FIELDS is out of step with Media's file fields; add the new field so its writes advance edit_date",
+        )

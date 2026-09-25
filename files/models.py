@@ -649,6 +649,10 @@ class Media(models.Model):
     # something every caller has to remember.
     _file_field_save_in_progress = None
 
+    # The file columns media_version versions URLs for, through edit_date. hls_file
+    # is a CharField with its own version (hls_version), so it is not listed.
+    FILE_FIELDS = frozenset({"media_file", "thumbnail", "poster", "uploaded_thumbnail", "uploaded_poster", "sprites"})
+
     def save(self, *args, update_fields=None, **kwargs):
         # A FieldFile.save(save=True) reaches here with no update_fields. Scope it
         # to the field that triggered it instead of replaying the whole instance.
@@ -771,6 +775,12 @@ class Media(models.Model):
         # test below and Model.save() itself consume it, so materialize it once
         # and hand the same collection on rather than an exhausted generator.
         if update_fields is not None:
+            # A file write was a full save before #841, which advanced the auto_now
+            # edit_date. File URLs are versioned off it (media_version), and feeds
+            # and "last updated" sorting read it, so a scoped file write names it:
+            # Django only sets auto_now on a field that update_fields includes.
+            if self.FILE_FIELDS & set(update_fields):
+                update_fields = frozenset(update_fields) | {"edit_date"}
             kwargs["update_fields"] = update_fields
 
         # ensure_encryption_key() can commit a key between an unlocked re-read and
@@ -851,8 +861,10 @@ class Media(models.Model):
                 # super().save() above has already persisted the rest of the row;
                 # a second full-row write here would replay the whole in-memory
                 # snapshot, including anything another worker changed meanwhile.
+                # edit_date for the same reason as the scoped saves above; this
+                # write bypasses Media.save(), so it names the column itself.
                 self.uploaded_thumbnail.save(content=myfile, name=thumbnail_name, save=False)
-                super(Media, self).save(update_fields=["uploaded_thumbnail"])
+                super(Media, self).save(update_fields=["uploaded_thumbnail", "edit_date"])
 
     def ensure_encryption_key(self):
         """Generate an AES-128 key if one doesn't exist. Returns hex string.
@@ -2487,7 +2499,7 @@ class TinyMCEMedia(models.Model):
 
 
 @receiver(post_save, sender=Media)
-def media_save(sender, instance, created, **kwargs):
+def media_save(sender, instance, created, update_fields=None, **kwargs):
     # media_file path is not set correctly until mode is saved
     # post_save signal will take care of calling a few functions
     # once model is saved
@@ -2537,7 +2549,15 @@ def media_save(sender, instance, created, **kwargs):
             ml = MediaLanguage.objects.filter(title=language_title).first()
             if ml:
                 ml.update_language_media()
-    instance.update_search_vector()
+    # The search vector is written by its own UPDATE, outside update_fields. A
+    # scoped save leaves the other columns as stored, and those may be newer than
+    # this instance, so index the stored row rather than the instance's stale
+    # copy of it (#841). It is still rebuilt on every save: tags are added after
+    # the edit form saves and only reach the index on the next one.
+    indexed = instance
+    if update_fields is not None:
+        indexed = Media.objects.select_related("user").filter(pk=instance.pk).first() or instance
+    indexed.update_search_vector()
     instance.transcribe_function()
 
 
@@ -3052,7 +3072,7 @@ def playlist_media_delete(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Media)
-def invalidate_playlist_composites_on_state_change(sender, instance, created, **kwargs):
+def invalidate_playlist_composites_on_state_change(sender, instance, created, update_fields=None, **kwargs):
     """Invalidate composite thumbnails of playlists that contain this media
     when its visibility state changes.
 
@@ -3063,6 +3083,10 @@ def invalidate_playlist_composites_on_state_change(sender, instance, created, **
     the updated visibility.
     """
     if created:
+        return
+    # Same rule as the hooks in Media.save(): a scoped save that does not write
+    # state leaves the stored state unchanged, whatever the instance holds (#841).
+    if update_fields is not None and "state" not in update_fields:
         return
     original_state = getattr(instance, "_Media__original_state", None)
     if original_state is None or original_state == instance.state:
@@ -3163,9 +3187,12 @@ class FeaturedVideo(models.Model):
 
 
 @receiver(pre_save, sender=Media)
-def track_featured_change(sender, instance, **kwargs):
+def track_featured_change(sender, instance, update_fields=None, **kwargs):
     """Track when featured field is about to change."""
-    if instance.pk:
+    # A save that does not write featured cannot change it. Comparing anyway
+    # lets a stale instance still holding featured=True re-feature a media that
+    # was unfeatured since it was loaded (#841).
+    if instance.pk and (update_fields is None or "featured" in update_fields):
         try:
             old = Media.objects.get(pk=instance.pk)
             instance._featured_changed = old.featured != instance.featured
